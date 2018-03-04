@@ -1,6 +1,7 @@
 #ifndef _light_h_
 #define _light_h_
 
+#include <stdbool.h>
 #include <inttypes.h>
 #include "util.h"
 #include "gui.h"
@@ -58,10 +59,7 @@ typedef struct {
 
 
 size_t fixture_widget_triangle_count(const fixture_widget *fw);
-void   assign_model_data(model *global, model *widget_data);
 void   assign_fixture_widget_model_data(model *global, fixture_widget *fw);
-void   assign_gui_widget_model_data(model *global, gui_widget *gw);
 void   initialize_fixture_widget(fixture_widget *fw, screen_dim x, screen_dim y, screen_dim w, screen_dim h);
-
 
 #endif

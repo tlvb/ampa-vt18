@@ -41,6 +41,11 @@ void hsv2rgb(float *r, float *g, float *b, float h, float s, float v) {
   *g += m;
   *b += m;
 }
+void assign_model_data(model *global, model *widget_data)
+{
+  widget_data->points = global->points;
+  widget_data->colors = global->colors;
+}
 void alloc_model(model *gm, size_t n) { /*{{{*/
 	gm->vtx_n = 0;
 	gm->points = calloc(2*n, sizeof(GLfloat));

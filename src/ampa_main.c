@@ -1,4 +1,5 @@
 #include "graphics_base.h"
+#include "gui.h"
 #include "light.h"
 #include "util.h"
 int main(int argc, char **argv)
@@ -11,8 +12,8 @@ int main(int argc, char **argv)
   // GRAPHICS SETUP
 	windowdata wd = WINDOW_DATA_DEFAULT;
 	if (argc == 2 && strcmp("-w", argv[1]) == 0) {
-		wd.width = 512;
-		wd.height = 320;
+		wd.width = 1280;
+		wd.height = 800;
 	}
 	else {
 		wd.width = 1280;
@@ -51,13 +52,19 @@ int main(int argc, char **argv)
 	const size_t nvert = 8000;
 	model gm = {0};
 	alloc_model(&gm, nvert);
-  gm.vtx_n = 100;
+
+
+
+  gui_widget simple_button;
+  initialize_gui_widget(&gm, &simple_button, 100, 100, 100, 100, BUTTON);
+
 
 	uint32_t previous_iteration_time = SDL_GetTicks();
   bool main_loop = true;
   while (main_loop) {
 		uint32_t current_iteration_time = SDL_GetTicks();
 		uint32_t dt = current_iteration_time - previous_iteration_time;
+    bool heart = (current_iteration_time & 0x00000200) != 0;
 
     // GL STUFF
 		glBindBuffer(GL_ARRAY_BUFFER, position_buf_ref);
@@ -72,12 +79,50 @@ int main(int argc, char **argv)
 		glDrawArrays(GL_TRIANGLES, 0, gm.vtx_n);
 		SDL_GL_SwapWindow(wd.window);
 
+    update_button_graphics(&simple_button, heart);
+
 		SDL_Event e;
 		while (SDL_PollEvent(&e)) {
       if (e.type == SDL_KEYDOWN) {
         if (e.key.keysym.sym == SDLK_q) {
           main_loop = false;
         }
+        else if (e.key.keysym.sym == SDLK_SPACE) {
+          simple_button.select = !simple_button.select;
+        }
+        else if (e.key.keysym.sym == SDLK_RETURN) {
+          simple_button.button.on = !simple_button.button.on;
+        }
+      }
+      else if (e.type == SDL_MOUSEMOTION) {
+        const screen_dim mx = e.motion.x;
+        const screen_dim my = e.motion.y;
+        if (is_inside(&simple_button.dims, mx, my)) {
+          simple_button.hover = true;
+        }
+        else {
+          simple_button.hover = false;
+        }
+      }
+      else if (e.type == SDL_MOUSEBUTTONDOWN) {
+        const screen_dim mx = e.motion.x;
+        const screen_dim my = e.motion.y;
+        if (is_inside(&simple_button.dims, mx, my)) {
+          simple_button.hover = true;
+          if (e.button.button == SDL_BUTTON_LEFT) {
+            simple_button.button.on = !simple_button.button.on;
+            simple_button.button.pressed = true;
+          }
+          else if (e.button.button == SDL_BUTTON_RIGHT) {
+            simple_button.select = !simple_button.select;
+          }
+        }
+        else {
+          simple_button.hover = false;
+        }
+      }
+      else if (e.type == SDL_KEYUP || e.type == SDL_MOUSEBUTTONUP) {
+        simple_button.button.pressed = false;
       }
     }
   }
