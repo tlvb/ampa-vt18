@@ -21,7 +21,7 @@ bool is_inside(const hitbox *h, screen_dim x, screen_dim y)
   return x >= h->pos[0] && x < h->pos[0]+h->size[0] &&
          y >= h->pos[1] && y < h->pos[1]+h->size[1];
 }
-static void initialize_button(gui_widget *button)
+static inline void initialize_button(gui_widget *button)
 {
   button->button.on = false;
   button->button.pressed = false;
@@ -33,13 +33,11 @@ static void initialize_button(gui_widget *button)
   for (size_t i=0; i<TRI_PER_BUTTON*VTX_PER_TRI; ++i) {
     button->m.points[i*DIM_PER_VTX+0] = rand()*100;
     button->m.points[i*DIM_PER_VTX+1] = rand()*100;
-    printf("DIM i=%2zu, -> %2zu, %2zu\n", i, i*DIM_PER_VTX+0, i*DIM_PER_VTX+1);
   }
   for (size_t i=0; i<TRI_PER_BUTTON*VTX_PER_TRI; ++i) {
     button->m.colors[i*CLR_PER_VTX+0] = 1.0f;
     button->m.colors[i*CLR_PER_VTX+1] = 0.0f;
     button->m.colors[i*CLR_PER_VTX+2] = 1.0f;
-    printf("CLR i=%2zu, -> %2zu, %2zu, %2zu\n", i, i*CLR_PER_VTX+0, i*CLR_PER_VTX+1, i*CLR_PER_VTX+2);
   }
 
   button->m.points[ 0] = x;
@@ -93,14 +91,14 @@ void initialize_gui_widget(model *global, gui_widget *gw, screen_dim x, screen_d
 }
 
 
-void update_button_graphics(gui_widget *button, bool heart)
+static inline void update_button_graphics(gui_widget *button, bool heart)
 {
   float r, g, b;
   if (button->hover) {
     r = g = b = 1.0f;
   }
   else if (button->select) {
-    r = g = heart ? 1.0f : 0.9f;
+    r = g = heart ? 1.0f : 0.5f;
     b = 0.0f;
   }
   else {

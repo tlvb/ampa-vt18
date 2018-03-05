@@ -1,6 +1,11 @@
 #pragma once
 #include <stdlib.h>
 #include "graphics_base.h"
+
+#define DIM_PER_VTX 2
+#define VTX_PER_TRI 3
+#define CLR_PER_VTX 3
+
 typedef struct {
 	size_t vtx_n;
 	GLfloat *points;

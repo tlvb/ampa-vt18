@@ -43,8 +43,8 @@ void hsv2rgb(float *r, float *g, float *b, float h, float s, float v) {
 }
 void assign_model_data(model *global, model *widget_data)
 {
-  widget_data->points = global->points;
-  widget_data->colors = global->colors;
+  widget_data->points = global->points + global->vtx_n*DIM_PER_VTX;
+  widget_data->colors = global->colors + global->vtx_n*CLR_PER_VTX;
 }
 void alloc_model(model *gm, size_t n) { /*{{{*/
 	gm->vtx_n = 0;

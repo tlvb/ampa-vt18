@@ -29,19 +29,28 @@ typedef uint_fast8_t dmx_value;    // possible dmx protocol "value" values are 0
 #define END     1
 #define CURRENT 2
 
-#define SOFTCHANNELS_N 9
+#define SOFTCHANNELS_N 12
 
 #define HUE         0
 #define SATURATION  1
 #define VALUE       2
-#define WHITE       3
-#define STROBE      4
-#define ULTRAVIOLET 5
-#define PAN         6
-#define TILT        7
-#define ZOOM        8
+#define RED         3
+#define GREEN       4
+#define BLUE        5
+#define WHITE       6
+#define STROBE      7
+#define ULTRAVIOLET 8
+#define PAN         9
+#define TILT       10
+#define ZOOM       11
 
 #define HARDCHANNELS_N 32
+
+#define TRI_PER_SINGLECHANNEL 2
+#define TRI_PER_LEDPAR56 TRI_PER_SINGLECHANNEL
+#define TRI_PER_LEDWASH 6
+#define TRI_PER_LEDMH 8
+#define TRI_PER_LEDMH2 11
 
 typedef struct {
   light_type  type;
@@ -60,6 +69,6 @@ typedef struct {
 
 size_t fixture_widget_triangle_count(const fixture_widget *fw);
 void   assign_fixture_widget_model_data(model *global, fixture_widget *fw);
-void   initialize_fixture_widget(fixture_widget *fw, screen_dim x, screen_dim y, screen_dim w, screen_dim h);
-
+void   initialize_fixture_widget(model *global, fixture_widget *fw, fixture *fix, screen_dim x, screen_dim y, screen_dim w, screen_dim h);
+void update_fixture_widgets(fixture_widget *fws, size_t n);
 #endif
