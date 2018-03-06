@@ -53,8 +53,22 @@ int main(int argc, char **argv)
   model gm = {0};
   alloc_model(&gm, nvert);
 
-  gui_widget simple_button;
-  initialize_gui_widget(&gm, &simple_button, 100, 100, 50, 50, BUTTON);
+  gui_widget simple_widget[13] = {0};
+  const size_t widgets_n = 13;
+
+  initialize_gui_widget(&gm, &simple_widget[ 0], 100,    500, 50, 50, BUTTON  ); // active
+  initialize_gui_widget(&gm, &simple_widget[ 1], 160+10, 500, 50, 50, SWATCH2 ); // mask count change type
+  initialize_gui_widget(&gm, &simple_widget[ 2], 220+20, 500, 50, 50, SWATCH4 ); // in
+  initialize_gui_widget(&gm, &simple_widget[ 3], 280+20, 500, 50, 50, SWATCH4 ); // hold
+  initialize_gui_widget(&gm, &simple_widget[ 4], 340+20, 500, 50, 50, SWATCH4 ); // out
+  initialize_gui_widget(&gm, &simple_widget[ 5], 400+30, 500, 50, 50, BUTTON  ); // white-on
+  initialize_gui_widget(&gm, &simple_widget[ 6], 460+30, 500, 50, 50, SWATCH2 ); // white-amount
+  initialize_gui_widget(&gm, &simple_widget[ 7], 520+40, 500, 50, 50, BUTTON  ); // strobe-on
+  initialize_gui_widget(&gm, &simple_widget[ 8], 580+40, 500, 50, 50, SWATCH2 ); // strobe-amount
+  initialize_gui_widget(&gm, &simple_widget[ 9], 640+50, 500, 50, 50, SWATCH2 ); // uv-amount
+  initialize_gui_widget(&gm, &simple_widget[10], 700+60, 500, 50, 50, SWATCH2 ); // zoom-amount change type?
+  initialize_gui_widget(&gm, &simple_widget[11], 760+70, 500, 50, 50, INACTIVE); // inactive
+  initialize_gui_widget(&gm, &simple_widget[12], 820+70, 500, 50, 50, INACTIVE); // inactive
 
   const size_t fixtures_n = 5;
 
@@ -93,7 +107,7 @@ int main(int argc, char **argv)
     glDrawArrays(GL_TRIANGLES, 0, gm.vtx_n);
     SDL_GL_SwapWindow(wd.window);
 
-    update_gui_widget_graphics(&simple_button, heart);
+    update_gui_widgets_graphics(simple_widget, widgets_n, heart);
     update_fixture_widgets(simple_light, fixtures_n);
 
     SDL_Event e;
@@ -103,41 +117,47 @@ int main(int argc, char **argv)
           main_loop = false;
         }
         else if (e.key.keysym.sym == SDLK_SPACE) {
-          simple_button.select = !simple_button.select;
+          simple_widget[0].select = !simple_widget[0].select;
         }
         else if (e.key.keysym.sym == SDLK_RETURN) {
-          simple_button.button.on = !simple_button.button.on;
+          simple_widget[0].button.on = !simple_widget[0].button.on;
         }
       }
       else if (e.type == SDL_MOUSEMOTION) {
         const screen_dim mx = e.motion.x;
         const screen_dim my = e.motion.y;
-        if (is_inside(&simple_button.dims, mx, my)) {
-          simple_button.hover = true;
-        }
-        else {
-          simple_button.hover = false;
+        for (size_t i=0; i<widgets_n; ++i) {
+          if (is_inside(&simple_widget[i].dims, mx, my)) {
+            simple_widget[i].hover = true;
+          }
+          else {
+            simple_widget[i].hover = false;
+          }
         }
       }
       else if (e.type == SDL_MOUSEBUTTONDOWN) {
         const screen_dim mx = e.motion.x;
         const screen_dim my = e.motion.y;
-        if (is_inside(&simple_button.dims, mx, my)) {
-          simple_button.hover = true;
-          if (e.button.button == SDL_BUTTON_LEFT) {
-            simple_button.button.on = !simple_button.button.on;
-            simple_button.button.pressed = true;
+        for (size_t i=0; i<widgets_n; ++i) {
+          if (is_inside(&simple_widget[i].dims, mx, my)) {
+            simple_widget[i].hover = true;
+            if (simple_widget[i].type == BUTTON && e.button.button == SDL_BUTTON_LEFT) {
+              simple_widget[i].button.on = !simple_widget[i].button.on;
+              simple_widget[i].button.pressed = true;
+            }
+            else if (e.button.button == SDL_BUTTON_RIGHT) {
+              simple_widget[i].select = !simple_widget[i].select;
+            }
           }
-          else if (e.button.button == SDL_BUTTON_RIGHT) {
-            simple_button.select = !simple_button.select;
+          else {
+            simple_widget[i].hover = false;
           }
-        }
-        else {
-          simple_button.hover = false;
         }
       }
       else if (e.type == SDL_KEYUP || e.type == SDL_MOUSEBUTTONUP) {
-        simple_button.button.pressed = false;
+        for (size_t i=0; i<widgets_n; ++i) {
+          simple_widget[i].button.pressed = false;
+        }
       }
     }
   }

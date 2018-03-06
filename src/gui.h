@@ -1,11 +1,16 @@
 #ifndef _gui_h_
 #define _gui_h_
 
-#define TRI_PER_BUTTON 4
-#define TRI_PER_SWATCH 4
 
-#define BUTTON 0
-#define SWATCH 1
+#define INACTIVE 0
+#define BUTTON   1
+#define SWATCH2  2
+#define SWATCH4  3
+
+#define TRI_PER_INACTIVE 2
+#define TRI_PER_BUTTON   4
+#define TRI_PER_SWATCH2  4
+#define TRI_PER_SWATCH4  6
 
 #include "util.h"
 #include <stdbool.h>
@@ -28,11 +33,19 @@ typedef struct {
 } button_data;
 
 typedef struct {
+  float red[2];
+  float green[2];
+  float blue[2];
+} swatch_data;
+
+typedef struct {
   gui_widget_type type;
+  bool updated;
   bool select; // programatically targeted e.g. by a 'select all' operation
   bool hover;  // targeted by specifically hovering the mouse above the widget
   union {
     button_data button;
+    swatch_data swatch;
   };
   hitbox dims;
   model  m;
@@ -40,6 +53,6 @@ typedef struct {
 
 bool is_inside(const hitbox *h, screen_dim x, screen_dim y);
 void initialize_gui_widget(model *global, gui_widget *gw, screen_dim x, screen_dim y, screen_dim w, screen_dim h, gui_widget_type type);
-void update_gui_widget_graphics(gui_widget *gw, bool heart);
+void update_gui_widgets_graphics(gui_widget *gw, size_t n, bool heart);
 
 #endif
