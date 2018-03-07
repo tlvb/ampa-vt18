@@ -2,15 +2,20 @@
 #define _gui_h_
 
 
-#define INACTIVE 0
-#define BUTTON   1
-#define SWATCH2  2
-#define SWATCH4  3
+#define INACTIVE   0
+#define BUTTON     1
+#define SWATCH2    2
+#define SWATCH4    3
+#define TWODIGITS  4
+#define FOURDIGITS 5
 
-#define TRI_PER_INACTIVE 2
-#define TRI_PER_BUTTON   4
-#define TRI_PER_SWATCH2  4
-#define TRI_PER_SWATCH4  6
+#define TRI_PER_INACTIVE  2
+#define TRI_PER_BUTTON    4
+#define TRI_PER_SWATCH2   4
+#define TRI_PER_SWATCH4   6
+#define TRI_PER_7SEG      (7*2)
+#define TRI_PER_TWODIGIT  (4+2*TRI_PER_7SEG)
+#define TRI_PER_FOURDIGIT (4+4*TRI_PER_7SEG)
 
 #include "util.h"
 #include <stdbool.h>
@@ -37,6 +42,22 @@ typedef struct {
   float green[2];
   float blue[2];
 } swatch_data;
+typedef struct {
+  screen_dim pos[2];
+	screen_dim s;
+	GLfloat *points;
+	GLfloat *colors;
+	GLfloat off_color[3];
+	GLfloat on_color[3];
+} digit;
+typedef struct {
+  screen_dim pos[2];
+  screen_dim size[2];
+	GLfloat *points;
+	GLfloat *colors;
+	int32_t number;
+	digit digits[4];
+} digit_data;
 
 typedef struct {
   gui_widget_type type;
@@ -46,6 +67,7 @@ typedef struct {
   union {
     button_data button;
     swatch_data swatch;
+    digit_data  digits;
   };
   hitbox dims;
   model  m;

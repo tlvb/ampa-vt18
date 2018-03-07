@@ -56,19 +56,19 @@ int main(int argc, char **argv)
   gui_widget simple_widget[13] = {0};
   const size_t widgets_n = 13;
 
-  initialize_gui_widget(&gm, &simple_widget[ 0], 100,    500, 50, 50, BUTTON  ); // active
-  initialize_gui_widget(&gm, &simple_widget[ 1], 160+10, 500, 50, 50, SWATCH2 ); // mask count change type
-  initialize_gui_widget(&gm, &simple_widget[ 2], 220+20, 500, 50, 50, SWATCH4 ); // in
-  initialize_gui_widget(&gm, &simple_widget[ 3], 280+20, 500, 50, 50, SWATCH4 ); // hold
-  initialize_gui_widget(&gm, &simple_widget[ 4], 340+20, 500, 50, 50, SWATCH4 ); // out
-  initialize_gui_widget(&gm, &simple_widget[ 5], 400+30, 500, 50, 50, BUTTON  ); // white-on
-  initialize_gui_widget(&gm, &simple_widget[ 6], 460+30, 500, 50, 50, SWATCH2 ); // white-amount
-  initialize_gui_widget(&gm, &simple_widget[ 7], 520+40, 500, 50, 50, BUTTON  ); // strobe-on
-  initialize_gui_widget(&gm, &simple_widget[ 8], 580+40, 500, 50, 50, SWATCH2 ); // strobe-amount
-  initialize_gui_widget(&gm, &simple_widget[ 9], 640+50, 500, 50, 50, SWATCH2 ); // uv-amount
-  initialize_gui_widget(&gm, &simple_widget[10], 700+60, 500, 50, 50, SWATCH2 ); // zoom-amount change type?
-  initialize_gui_widget(&gm, &simple_widget[11], 760+70, 500, 50, 50, INACTIVE); // inactive
-  initialize_gui_widget(&gm, &simple_widget[12], 820+70, 500, 50, 50, INACTIVE); // inactive
+  initialize_gui_widget(&gm, &simple_widget[ 0], 100,     500,  30, 30, BUTTON    ); // active
+  initialize_gui_widget(&gm, &simple_widget[ 1], 160+ 10, 500,  30, 30, TWODIGITS ); // mask count change type
+  initialize_gui_widget(&gm, &simple_widget[ 2], 220+ 20, 500,  30, 30, SWATCH4   ); // in
+  initialize_gui_widget(&gm, &simple_widget[ 3], 280+ 20, 500,  30, 30, SWATCH4   ); // hold
+  initialize_gui_widget(&gm, &simple_widget[ 4], 340+ 20, 500,  30, 30, SWATCH4   ); // out
+  initialize_gui_widget(&gm, &simple_widget[ 5], 400+ 30, 500,  30, 30, BUTTON    ); // white-on
+  initialize_gui_widget(&gm, &simple_widget[ 6], 460+ 30, 500,  30, 30, SWATCH2   ); // white-amount
+  initialize_gui_widget(&gm, &simple_widget[ 7], 520+ 40, 500,  30, 30, BUTTON    ); // strobe-on
+  initialize_gui_widget(&gm, &simple_widget[ 8], 580+ 40, 500,  30, 30, SWATCH2   ); // strobe-amount
+  initialize_gui_widget(&gm, &simple_widget[ 9], 640+ 50, 500,  30, 30, SWATCH2   ); // uv-amount
+  initialize_gui_widget(&gm, &simple_widget[10], 700+ 60, 500,  60, 30, FOURDIGITS); // zoom-amount change type?
+  initialize_gui_widget(&gm, &simple_widget[11], 760+120, 500,  30, 30, INACTIVE  ); // inactive
+  initialize_gui_widget(&gm, &simple_widget[12], 820+120, 500,  30, 30, INACTIVE  ); // inactive
 
   const size_t fixtures_n = 5;
 

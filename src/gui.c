@@ -11,6 +11,10 @@ size_t gui_widget_triangle_count(const gui_widget *gw)
     return TRI_PER_SWATCH2;
   case SWATCH4:
     return TRI_PER_SWATCH4;
+  case TWODIGITS:
+    return TRI_PER_TWODIGIT;
+  case FOURDIGITS:
+    return TRI_PER_FOURDIGIT;
   default:
     fprintf(stderr, "no such gui widget type: %" PRI_GWT "\n", gw->type);
     exit(1);
@@ -208,6 +212,151 @@ static void initialize_swatch4(gui_widget *swatch)
   swatch->m.points[34] = x+m;
   swatch->m.points[35] = y+h-m;
 }
+static void initialize_digit(GLfloat *points, GLfloat *colors,  digit *d, float x, float y, float s)
+{
+	d->pos[0] = x;
+	d->pos[1] = y;
+	d->s = s;
+
+	d->points = points;
+	d->colors = colors;
+
+	const GLfloat pts[TRI_PER_7SEG*VTX_PER_TRI*DIM_PER_VTX] = {
+		x+4*s, y+1*s,  x+5*s, y+1*s,  x+5*s, y+3*s, // a
+		x+4*s, y+1*s,  x+5*s, y+3*s,  x+4*s, y+3*s, // a
+
+		x+4*s, y+4*s,  x+5*s, y+4*s,  x+5*s, y+6*s, // b
+		x+4*s, y+4*s,  x+5*s, y+6*s,  x+4*s, y+6*s, // b
+
+		x+1*s, y+6*s,  x+4*s, y+6*s,  x+4*s, y+7*s, // c
+		x+1*s, y+6*s,  x+4*s, y+7*s,  x+1*s, y+7*s, // c
+
+		x+0*s, y+4*s,  x+1*s, y+4*s,  x+1*s, y+6*s, // d
+		x+0*s, y+4*s,  x+1*s, y+6*s,  x+0*s, y+6*s, // d
+
+		x+0*s, y+1*s,  x+1*s, y+1*s,  x+1*s, y+3*s, // e
+		x+0*s, y+1*s,  x+1*s, y+3*s,  x+0*s, y+3*s, // e
+
+		x+1*s, y+0*s,  x+4*s, y+0*s,  x+4*s, y+1*s, // f
+		x+1*s, y+0*s,  x+4*s, y+1*s,  x+1*s, y+1*s, // f
+
+		x+1*s, y+3*s,  x+4*s, y+3*s,  x+4*s, y+4*s, // g
+		x+1*s, y+3*s,  x+4*s, y+4*s,  x+1*s, y+4*s  // g
+	};
+	memcpy(d->points, pts, sizeof(GLfloat)*TRI_PER_7SEG*VTX_PER_TRI*DIM_PER_VTX);
+	memset(d->colors, 0,   sizeof(GLfloat)*TRI_PER_7SEG*VTX_PER_TRI*CLR_PER_VTX);
+
+  d->off_color[0] = 0.1;
+  d->off_color[1] = 0;
+  d->off_color[2] = 0;
+  d->on_color[0] = 1;
+  d->on_color[1] = 0;
+  d->on_color[2] = 0;
+}
+static void initialize_twodigits(gui_widget *digits)
+{
+  const screen_dim x = digits->dims.pos[0];
+  const screen_dim y = digits->dims.pos[1];
+  const screen_dim w = digits->dims.size[0];
+  const screen_dim h = digits->dims.size[1];
+  const screen_dim m = 3;
+  for (size_t i=0; i<TRI_PER_TWODIGIT*VTX_PER_TRI; ++i) {
+    digits->m.points[i*DIM_PER_VTX+0] = rand()*100;
+    digits->m.points[i*DIM_PER_VTX+1] = rand()*100;
+  }
+  for (size_t i=0; i<TRI_PER_TWODIGIT*VTX_PER_TRI; ++i) {
+    digits->m.colors[i*CLR_PER_VTX+0] = 0.15f;
+    digits->m.colors[i*CLR_PER_VTX+1] = 0.15f;
+    digits->m.colors[i*CLR_PER_VTX+2] = 0.15f;
+  }
+  digits->m.points[ 0] = x;
+  digits->m.points[ 1] = y;
+  digits->m.points[ 2] = x+w;
+  digits->m.points[ 3] = y;
+  digits->m.points[ 4] = x+w;
+  digits->m.points[ 5] = y+h;
+
+  digits->m.points[ 6] = x;
+  digits->m.points[ 7] = y;
+  digits->m.points[ 8] = x+w;
+  digits->m.points[ 9] = y+h;
+  digits->m.points[10] = x;
+  digits->m.points[11] = y+h;
+
+  digits->m.points[12] = x+m;
+  digits->m.points[13] = y+m;
+  digits->m.points[14] = x+w-m;
+  digits->m.points[15] = y+m;
+  digits->m.points[16] = x+w-m;
+  digits->m.points[17] = y+h-m;
+
+  digits->m.points[18] = x+m;
+  digits->m.points[19] = y+m;
+  digits->m.points[20] = x+w-m;
+  digits->m.points[21] = y+h-m;
+  digits->m.points[22] = x+m;
+  digits->m.points[23] = y+h-m;
+
+  screen_dim s = (w-4*m)/14.0f <= (h-4*m)/9.0f ? (w-4*m)/14 : (h-4*m)/9;
+
+  initialize_digit(digits->m.points+4*VTX_PER_TRI*DIM_PER_VTX, digits->m.colors+4*VTX_PER_TRI*CLR_PER_VTX, &digits->digits.digits[0], x+w/2-6*s, y+h/2-s*9/2, s);
+  initialize_digit(digits->m.points+(4+TRI_PER_7SEG)*VTX_PER_TRI*DIM_PER_VTX, digits->m.colors+(4+TRI_PER_7SEG)*VTX_PER_TRI*CLR_PER_VTX, &digits->digits.digits[1], x+w/2+s, y+h/2-s*9/2, s);
+
+	for (size_t i=0; i<4; ++i) {
+	}
+}
+static void initialize_fourdigits(gui_widget *digits)
+{
+  const screen_dim x = digits->dims.pos[0];
+  const screen_dim y = digits->dims.pos[1];
+  const screen_dim w = digits->dims.size[0];
+  const screen_dim h = digits->dims.size[1];
+  const screen_dim m = 3;
+  for (size_t i=0; i<TRI_PER_TWODIGIT*VTX_PER_TRI; ++i) {
+    digits->m.points[i*DIM_PER_VTX+0] = rand()*100;
+    digits->m.points[i*DIM_PER_VTX+1] = rand()*100;
+  }
+  for (size_t i=0; i<TRI_PER_TWODIGIT*VTX_PER_TRI; ++i) {
+    digits->m.colors[i*CLR_PER_VTX+0] = 0.15f;
+    digits->m.colors[i*CLR_PER_VTX+1] = 0.15f;
+    digits->m.colors[i*CLR_PER_VTX+2] = 0.15f;
+  }
+  digits->m.points[ 0] = x;
+  digits->m.points[ 1] = y;
+  digits->m.points[ 2] = x+w;
+  digits->m.points[ 3] = y;
+  digits->m.points[ 4] = x+w;
+  digits->m.points[ 5] = y+h;
+
+  digits->m.points[ 6] = x;
+  digits->m.points[ 7] = y;
+  digits->m.points[ 8] = x+w;
+  digits->m.points[ 9] = y+h;
+  digits->m.points[10] = x;
+  digits->m.points[11] = y+h;
+
+  digits->m.points[12] = x+m;
+  digits->m.points[13] = y+m;
+  digits->m.points[14] = x+w-m;
+  digits->m.points[15] = y+m;
+  digits->m.points[16] = x+w-m;
+  digits->m.points[17] = y+h-m;
+
+  digits->m.points[18] = x+m;
+  digits->m.points[19] = y+m;
+  digits->m.points[20] = x+w-m;
+  digits->m.points[21] = y+h-m;
+  digits->m.points[22] = x+m;
+  digits->m.points[23] = y+h-m;
+
+  screen_dim s = (w-4*m)/24.0f <= (h-4*m)/9.0f ? (w-4*m)/24 : (h-4*m)/9;
+
+  initialize_digit(digits->m.points+4*VTX_PER_TRI*DIM_PER_VTX, digits->m.colors+4*VTX_PER_TRI*CLR_PER_VTX, &digits->digits.digits[0], x+w/2-13*s, y+h/2-s*9/2, s);
+  initialize_digit(digits->m.points+(4+TRI_PER_7SEG)*VTX_PER_TRI*DIM_PER_VTX, digits->m.colors+(4+TRI_PER_7SEG)*VTX_PER_TRI*CLR_PER_VTX, &digits->digits.digits[1], x+w/2-6*s, y+h/2-s*9/2, s);
+  initialize_digit(digits->m.points+(4+2*TRI_PER_7SEG)*VTX_PER_TRI*DIM_PER_VTX, digits->m.colors+(4+2*TRI_PER_7SEG)*VTX_PER_TRI*CLR_PER_VTX, &digits->digits.digits[2], x+w/2+s, y+h/2-s*9/2, s);
+  initialize_digit(digits->m.points+(4+3*TRI_PER_7SEG)*VTX_PER_TRI*DIM_PER_VTX, digits->m.colors+(4+3*TRI_PER_7SEG)*VTX_PER_TRI*CLR_PER_VTX, &digits->digits.digits[3], x+w/2+8*s, y+h/2-s*9/2, s);
+
+}
 void initialize_gui_widget(model *global, gui_widget *gw, screen_dim x, screen_dim y, screen_dim w, screen_dim h, gui_widget_type type)
 {
   gw->type = type;
@@ -233,6 +382,12 @@ void initialize_gui_widget(model *global, gui_widget *gw, screen_dim x, screen_d
   case SWATCH4:
     initialize_swatch4(gw);
     break;
+  case TWODIGITS:
+    initialize_twodigits(gw);
+    break;
+  case FOURDIGITS:
+    initialize_fourdigits(gw);
+    break;
   default:
     fprintf(stderr, "no such gui widget type: %" PRI_GWT "\n", type);
     exit(1);
@@ -240,6 +395,128 @@ void initialize_gui_widget(model *global, gui_widget *gw, screen_dim x, screen_d
 }
 
 
+static inline void update_digit_graphics(digit *d, int8_t v)
+{
+	// A 0
+	if (v==0 || v==1 || v==2 || v==3 || v==4 ||                 v==7 || v==8 || v==9) {
+		memcpy(d->colors+ 0, d->on_color, sizeof(GLfloat)*3);
+		memcpy(d->colors+ 3, d->on_color, sizeof(GLfloat)*3);
+		memcpy(d->colors+ 6, d->on_color, sizeof(GLfloat)*3);
+		memcpy(d->colors+ 9, d->on_color, sizeof(GLfloat)*3);
+		memcpy(d->colors+12, d->on_color, sizeof(GLfloat)*3);
+		memcpy(d->colors+15, d->on_color, sizeof(GLfloat)*3);
+	}
+	else {
+		memcpy(d->colors+ 0, d->off_color, sizeof(GLfloat)*3);
+		memcpy(d->colors+ 3, d->off_color, sizeof(GLfloat)*3);
+		memcpy(d->colors+ 6, d->off_color, sizeof(GLfloat)*3);
+		memcpy(d->colors+ 9, d->off_color, sizeof(GLfloat)*3);
+		memcpy(d->colors+12, d->off_color, sizeof(GLfloat)*3);
+		memcpy(d->colors+15, d->off_color, sizeof(GLfloat)*3);
+	}
+	// B 1
+	if (v==0 || v==1 ||         v==3 || v==4 || v==5 || v==6 || v==7 || v==8 || v==9) {
+		memcpy(d->colors+18, d->on_color, sizeof(GLfloat)*3);
+		memcpy(d->colors+21, d->on_color, sizeof(GLfloat)*3);
+		memcpy(d->colors+24, d->on_color, sizeof(GLfloat)*3);
+		memcpy(d->colors+27, d->on_color, sizeof(GLfloat)*3);
+		memcpy(d->colors+30, d->on_color, sizeof(GLfloat)*3);
+		memcpy(d->colors+33, d->on_color, sizeof(GLfloat)*3);
+	}
+	else {
+		memcpy(d->colors+18, d->off_color, sizeof(GLfloat)*3);
+		memcpy(d->colors+21, d->off_color, sizeof(GLfloat)*3);
+		memcpy(d->colors+24, d->off_color, sizeof(GLfloat)*3);
+		memcpy(d->colors+27, d->off_color, sizeof(GLfloat)*3);
+		memcpy(d->colors+30, d->off_color, sizeof(GLfloat)*3);
+		memcpy(d->colors+33, d->off_color, sizeof(GLfloat)*3);
+	}
+	// C 2
+	if (v==0 ||         v==2 || v==3 ||         v==5 || v==6 ||         v==8 || v==9 || v<0) {
+		memcpy(d->colors+36, d->on_color, sizeof(GLfloat)*3);
+		memcpy(d->colors+39, d->on_color, sizeof(GLfloat)*3);
+		memcpy(d->colors+42, d->on_color, sizeof(GLfloat)*3);
+		memcpy(d->colors+45, d->on_color, sizeof(GLfloat)*3);
+		memcpy(d->colors+48, d->on_color, sizeof(GLfloat)*3);
+		memcpy(d->colors+51, d->on_color, sizeof(GLfloat)*3);
+	}
+	else {
+		memcpy(d->colors+36, d->off_color, sizeof(GLfloat)*3);
+		memcpy(d->colors+39, d->off_color, sizeof(GLfloat)*3);
+		memcpy(d->colors+42, d->off_color, sizeof(GLfloat)*3);
+		memcpy(d->colors+45, d->off_color, sizeof(GLfloat)*3);
+		memcpy(d->colors+48, d->off_color, sizeof(GLfloat)*3);
+		memcpy(d->colors+51, d->off_color, sizeof(GLfloat)*3);
+	}
+	// D 3
+	if (v==0 ||         v==2 ||                         v==6 ||         v==8        ) {
+		memcpy(d->colors+54, d->on_color, sizeof(GLfloat)*3);
+		memcpy(d->colors+57, d->on_color, sizeof(GLfloat)*3);
+		memcpy(d->colors+60, d->on_color, sizeof(GLfloat)*3);
+		memcpy(d->colors+63, d->on_color, sizeof(GLfloat)*3);
+		memcpy(d->colors+66, d->on_color, sizeof(GLfloat)*3);
+		memcpy(d->colors+69, d->on_color, sizeof(GLfloat)*3);
+	}
+	else {
+		memcpy(d->colors+54, d->off_color, sizeof(GLfloat)*3);
+		memcpy(d->colors+57, d->off_color, sizeof(GLfloat)*3);
+		memcpy(d->colors+60, d->off_color, sizeof(GLfloat)*3);
+		memcpy(d->colors+63, d->off_color, sizeof(GLfloat)*3);
+		memcpy(d->colors+66, d->off_color, sizeof(GLfloat)*3);
+		memcpy(d->colors+69, d->off_color, sizeof(GLfloat)*3);
+	}
+	// E 4
+	if (v==0 ||                         v==4 || v==5 || v==6 || v==7 || v==8 || v==9) {
+		memcpy(d->colors+72, d->on_color, sizeof(GLfloat)*3);
+		memcpy(d->colors+75, d->on_color, sizeof(GLfloat)*3);
+		memcpy(d->colors+78, d->on_color, sizeof(GLfloat)*3);
+		memcpy(d->colors+81, d->on_color, sizeof(GLfloat)*3);
+		memcpy(d->colors+84, d->on_color, sizeof(GLfloat)*3);
+		memcpy(d->colors+87, d->on_color, sizeof(GLfloat)*3);
+	}
+	else {
+		memcpy(d->colors+72, d->off_color, sizeof(GLfloat)*3);
+		memcpy(d->colors+75, d->off_color, sizeof(GLfloat)*3);
+		memcpy(d->colors+78, d->off_color, sizeof(GLfloat)*3);
+		memcpy(d->colors+81, d->off_color, sizeof(GLfloat)*3);
+		memcpy(d->colors+84, d->off_color, sizeof(GLfloat)*3);
+		memcpy(d->colors+87, d->off_color, sizeof(GLfloat)*3);
+	}
+	// F 5
+	if (v==0 ||         v==2 || v==3 ||         v==5 || v==6 || v==7 || v==8 || v==9 || v > 9) {
+		memcpy(d->colors+ 90, d->on_color, sizeof(GLfloat)*3);
+		memcpy(d->colors+ 93, d->on_color, sizeof(GLfloat)*3);
+		memcpy(d->colors+ 96, d->on_color, sizeof(GLfloat)*3);
+		memcpy(d->colors+ 99, d->on_color, sizeof(GLfloat)*3);
+		memcpy(d->colors+102, d->on_color, sizeof(GLfloat)*3);
+		memcpy(d->colors+105, d->on_color, sizeof(GLfloat)*3);
+	}
+	else {
+		memcpy(d->colors+ 90, d->off_color, sizeof(GLfloat)*3);
+		memcpy(d->colors+ 93, d->off_color, sizeof(GLfloat)*3);
+		memcpy(d->colors+ 96, d->off_color, sizeof(GLfloat)*3);
+		memcpy(d->colors+ 99, d->off_color, sizeof(GLfloat)*3);
+		memcpy(d->colors+102, d->off_color, sizeof(GLfloat)*3);
+		memcpy(d->colors+105, d->off_color, sizeof(GLfloat)*3);
+	}
+	// G 6
+	if (                v==2 || v==3 || v==4 || v==5 || v==6 ||         v==8 || v==9) {
+		memcpy(d->colors+108, d->on_color, sizeof(GLfloat)*3);
+		memcpy(d->colors+111, d->on_color, sizeof(GLfloat)*3);
+		memcpy(d->colors+114, d->on_color, sizeof(GLfloat)*3);
+		memcpy(d->colors+117, d->on_color, sizeof(GLfloat)*3);
+		memcpy(d->colors+120, d->on_color, sizeof(GLfloat)*3);
+		memcpy(d->colors+123, d->on_color, sizeof(GLfloat)*3);
+	}
+	else {
+		memcpy(d->colors+108, d->off_color, sizeof(GLfloat)*3);
+		memcpy(d->colors+111, d->off_color, sizeof(GLfloat)*3);
+		memcpy(d->colors+114, d->off_color, sizeof(GLfloat)*3);
+		memcpy(d->colors+117, d->off_color, sizeof(GLfloat)*3);
+		memcpy(d->colors+120, d->off_color, sizeof(GLfloat)*3);
+		memcpy(d->colors+123, d->off_color, sizeof(GLfloat)*3);
+	}
+}
 static inline void update_button_graphics(gui_widget *button, bool heart)
 {
   float r, g, b;
@@ -353,6 +630,70 @@ static inline void update_swatch4_graphics(gui_widget *swatch, bool heart)
   swatch->m.colors[47] = swatch->m.colors[50] = swatch->m.colors[53] = b;
 
 }
+static inline void update_twodigit_graphics(gui_widget *digits, bool heart)
+{
+  float r, g, b;
+  if (digits->hover) {
+    r = g = b = 1.0f;
+  }
+  else if (digits->select) {
+    r = g = heart ? 1.0f : 0.5f;
+    b = 0.0f;
+  }
+  else {
+    r = g = b = 0.0f;
+  }
+
+  digits->m.colors[ 0] = digits->m.colors[ 3] = digits->m.colors[ 6] = r;
+  digits->m.colors[ 1] = digits->m.colors[ 4] = digits->m.colors[ 7] = g;
+  digits->m.colors[ 2] = digits->m.colors[ 5] = digits->m.colors[ 8] = b;
+  digits->m.colors[ 9] = digits->m.colors[12] = digits->m.colors[15] = r;
+  digits->m.colors[10] = digits->m.colors[13] = digits->m.colors[16] = g;
+  digits->m.colors[11] = digits->m.colors[14] = digits->m.colors[17] = b;
+
+  digits->m.colors[18] = digits->m.colors[21] = digits->m.colors[24] = 0.0f;
+  digits->m.colors[19] = digits->m.colors[22] = digits->m.colors[25] = 0.0f;
+  digits->m.colors[20] = digits->m.colors[23] = digits->m.colors[26] = 0.0f;
+  digits->m.colors[27] = digits->m.colors[30] = digits->m.colors[33] = 0.0f;
+  digits->m.colors[28] = digits->m.colors[31] = digits->m.colors[34] = 0.0f;
+  digits->m.colors[29] = digits->m.colors[32] = digits->m.colors[35] = 0.0f;
+
+  update_digit_graphics(&digits->digits.digits[0], 8);
+  update_digit_graphics(&digits->digits.digits[1], 8);
+}
+static inline void update_fourdigit_graphics(gui_widget *digits, bool heart)
+{
+  float r, g, b;
+  if (digits->hover) {
+    r = g = b = 1.0f;
+  }
+  else if (digits->select) {
+    r = g = heart ? 1.0f : 0.5f;
+    b = 0.0f;
+  }
+  else {
+    r = g = b = 0.0f;
+  }
+
+  digits->m.colors[ 0] = digits->m.colors[ 3] = digits->m.colors[ 6] = r;
+  digits->m.colors[ 1] = digits->m.colors[ 4] = digits->m.colors[ 7] = g;
+  digits->m.colors[ 2] = digits->m.colors[ 5] = digits->m.colors[ 8] = b;
+  digits->m.colors[ 9] = digits->m.colors[12] = digits->m.colors[15] = r;
+  digits->m.colors[10] = digits->m.colors[13] = digits->m.colors[16] = g;
+  digits->m.colors[11] = digits->m.colors[14] = digits->m.colors[17] = b;
+
+  digits->m.colors[18] = digits->m.colors[21] = digits->m.colors[24] = 0.0f;
+  digits->m.colors[19] = digits->m.colors[22] = digits->m.colors[25] = 0.0f;
+  digits->m.colors[20] = digits->m.colors[23] = digits->m.colors[26] = 0.0f;
+  digits->m.colors[27] = digits->m.colors[30] = digits->m.colors[33] = 0.0f;
+  digits->m.colors[28] = digits->m.colors[31] = digits->m.colors[34] = 0.0f;
+  digits->m.colors[29] = digits->m.colors[32] = digits->m.colors[35] = 0.0f;
+
+  update_digit_graphics(&digits->digits.digits[0], 8);
+  update_digit_graphics(&digits->digits.digits[1], 8);
+  update_digit_graphics(&digits->digits.digits[2], 8);
+  update_digit_graphics(&digits->digits.digits[3], 8);
+}
 
 
 void update_gui_widgets_graphics(gui_widget *gw, size_t n, bool heart)
@@ -374,6 +715,12 @@ void update_gui_widgets_graphics(gui_widget *gw, size_t n, bool heart)
       break;
     case SWATCH4:
       update_swatch4_graphics(&gw[i], heart);
+      break;
+    case TWODIGITS:
+      update_twodigit_graphics(&gw[i], heart);
+      break;
+    case FOURDIGITS:
+      update_fourdigit_graphics(&gw[i], heart);
       break;
     default:
       fprintf(stderr, "no such gui widget type: %" PRI_GWT "\n", gw->type);
