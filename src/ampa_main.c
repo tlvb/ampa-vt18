@@ -59,7 +59,7 @@ int main(int argc, char **argv)
   gui_widget bank_widgets[widgets_n];
 
   for (size_t i=0; i<banks_n; ++i) {
-    screen_dim bank_x = 400;
+    screen_dim bank_x = 450;
     screen_dim bank_y = 40+50*i + (i>=4?60:0) + (i>=8?60:0);
     gui_widget *widget = &bank_widgets[i*settings_per_bank];
     initialize_gui_widget(&gm, &widget[ 0], bank_x+  0, bank_y,  80, 40, FOURDIGITS                   ); // bpm
@@ -77,21 +77,29 @@ int main(int argc, char **argv)
     initialize_gui_widget(&gm, &widget[12], bank_x+740, bank_y,  40, 40, TWODIGITS                    ); // program index
   }
 
-  const size_t fixtures_n = 5;
+  const size_t fixtures_n = 8 + 4 + 2;
 
-  fixture fix[5] = {{ .type = SINGLECHANNEL, .base_channel =  20 },
-                    { .type = LEDPAR56,      .base_channel =  40 },
-                    { .type = LEDWASH,       .base_channel =  60 },
-                    { .type = LEDMH,         .base_channel =  80 },
-                    { .type = LEDMH2,        .base_channel = 100 }};
-  fixture_widget simple_light[fixtures_n];
-
+  fixture fixtures[fixtures_n];
   for (size_t i=0; i<fixtures_n; ++i) {
-    initialize_fixture_widget(&gm, &simple_light[i], &fix[i], 500, 100+60*i, 50, 50);
+    if (i < 8) {
+      fixtures[i].type = LEDWASH;
+      fixtures[i].base_channel = 0;
+    }
+    else if (i < 8+4) {
+      fixtures[i].type = LEDMH;
+      fixtures[i].base_channel = 0;
+    }
+    else {
+      fixtures[i].type = LEDMH2;
+      fixtures[i].base_channel = 0;
+    }
   }
 
+  fixture_widget light_widgets[fixtures_n];
 
-
+  for (size_t i=0; i<fixtures_n; ++i) {
+    initialize_fixture_widget(&gm, &light_widgets[i], &fixtures[i], 40+(i&3)*90, 40+(i>>2)*90, 80, 80);
+  }
 
   uint32_t previous_iteration_time = SDL_GetTicks();
   bool main_loop = true;
@@ -115,7 +123,7 @@ int main(int argc, char **argv)
     SDL_GL_SwapWindow(wd.window);
 
     update_gui_widgets_graphics(bank_widgets, settings_per_bank*banks_n, heart);
-    update_fixture_widgets(simple_light, fixtures_n);
+    update_fixture_widgets(light_widgets, fixtures_n);
 
     SDL_Event e;
     while (SDL_PollEvent(&e)) {
