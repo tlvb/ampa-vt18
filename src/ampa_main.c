@@ -53,22 +53,29 @@ int main(int argc, char **argv)
   model gm = {0};
   alloc_model(&gm, nvert);
 
-  gui_widget simple_widget[13] = {0};
-  const size_t widgets_n = 13;
+  const size_t banks_n = 12;
+  const size_t settings_per_bank = 13;
+  const size_t widgets_n = settings_per_bank*banks_n;
+  gui_widget bank_widgets[widgets_n];
 
-  initialize_gui_widget(&gm, &simple_widget[ 0], 100,     500,  30, 30, BUTTON    ); // active
-  initialize_gui_widget(&gm, &simple_widget[ 1], 160+ 10, 500,  30, 30, TWODIGITS ); // mask count change type
-  initialize_gui_widget(&gm, &simple_widget[ 2], 220+ 20, 500,  30, 30, SWATCH4   ); // in
-  initialize_gui_widget(&gm, &simple_widget[ 3], 280+ 20, 500,  30, 30, SWATCH4   ); // hold
-  initialize_gui_widget(&gm, &simple_widget[ 4], 340+ 20, 500,  30, 30, SWATCH4   ); // out
-  initialize_gui_widget(&gm, &simple_widget[ 5], 400+ 30, 500,  30, 30, BUTTON    ); // white-on
-  initialize_gui_widget(&gm, &simple_widget[ 6], 460+ 30, 500,  30, 30, SWATCH2   ); // white-amount
-  initialize_gui_widget(&gm, &simple_widget[ 7], 520+ 40, 500,  30, 30, BUTTON    ); // strobe-on
-  initialize_gui_widget(&gm, &simple_widget[ 8], 580+ 40, 500,  30, 30, SWATCH2   ); // strobe-amount
-  initialize_gui_widget(&gm, &simple_widget[ 9], 640+ 50, 500,  30, 30, SWATCH2   ); // uv-amount
-  initialize_gui_widget(&gm, &simple_widget[10], 700+ 60, 500,  60, 30, FOURDIGITS); // zoom-amount change type?
-  initialize_gui_widget(&gm, &simple_widget[11], 760+120, 500,  30, 30, INACTIVE  ); // inactive
-  initialize_gui_widget(&gm, &simple_widget[12], 820+120, 500,  30, 30, INACTIVE  ); // inactive
+  for (size_t i=0; i<banks_n; ++i) {
+    screen_dim bank_x = 400;
+    screen_dim bank_y = 40+50*i + (i>=4?60:0) + (i>=8?60:0);
+    gui_widget *widget = &bank_widgets[i*settings_per_bank];
+    initialize_gui_widget(&gm, &widget[ 0], bank_x+  0, bank_y,  80, 40, FOURDIGITS                   ); // bpm
+    initialize_gui_widget(&gm, &widget[ 1], bank_x+ 90, bank_y,  40, 40, BUTTON                       ); // active
+    initialize_gui_widget(&gm, &widget[ 2], bank_x+140, bank_y,  40, 40, TWODIGITS                    ); // mask count change type
+    initialize_gui_widget(&gm, &widget[ 3], bank_x+200, bank_y,  40, 40, SWATCH4                      ); // in
+    initialize_gui_widget(&gm, &widget[ 4], bank_x+250, bank_y,  40, 40, SWATCH4                      ); // hold
+    initialize_gui_widget(&gm, &widget[ 5], bank_x+300, bank_y,  40, 40, SWATCH4                      ); // out
+    initialize_gui_widget(&gm, &widget[ 6], bank_x+360, bank_y,  40, 40, BUTTON                       ); // white-on
+    initialize_gui_widget(&gm, &widget[ 7], bank_x+410, bank_y,  40, 40, SWATCH2                      ); // white-amount
+    initialize_gui_widget(&gm, &widget[ 8], bank_x+470, bank_y,  40, 40, BUTTON                       ); // strobe-on
+    initialize_gui_widget(&gm, &widget[ 9], bank_x+520, bank_y,  40, 40, SWATCH2                      ); // strobe-amount
+    initialize_gui_widget(&gm, &widget[10], bank_x+580, bank_y,  40, 40, i >= 8 ? SWATCH2   : INACTIVE); // uv-amount
+    initialize_gui_widget(&gm, &widget[11], bank_x+640, bank_y,  40, 40, i >= 8 ? TWODIGITS : INACTIVE); // zoom-amount
+    initialize_gui_widget(&gm, &widget[12], bank_x+740, bank_y,  40, 40, TWODIGITS                    ); // program index
+  }
 
   const size_t fixtures_n = 5;
 
@@ -107,7 +114,7 @@ int main(int argc, char **argv)
     glDrawArrays(GL_TRIANGLES, 0, gm.vtx_n);
     SDL_GL_SwapWindow(wd.window);
 
-    update_gui_widgets_graphics(simple_widget, widgets_n, heart);
+    update_gui_widgets_graphics(bank_widgets, settings_per_bank*banks_n, heart);
     update_fixture_widgets(simple_light, fixtures_n);
 
     SDL_Event e;
@@ -116,22 +123,16 @@ int main(int argc, char **argv)
         if (e.key.keysym.sym == SDLK_q) {
           main_loop = false;
         }
-        else if (e.key.keysym.sym == SDLK_SPACE) {
-          simple_widget[0].select = !simple_widget[0].select;
-        }
-        else if (e.key.keysym.sym == SDLK_RETURN) {
-          simple_widget[0].button.on = !simple_widget[0].button.on;
-        }
       }
       else if (e.type == SDL_MOUSEMOTION) {
         const screen_dim mx = e.motion.x;
         const screen_dim my = e.motion.y;
         for (size_t i=0; i<widgets_n; ++i) {
-          if (is_inside(&simple_widget[i].dims, mx, my)) {
-            simple_widget[i].hover = true;
+          if (is_inside(&bank_widgets[i].dims, mx, my)) {
+            bank_widgets[i].hover = true;
           }
           else {
-            simple_widget[i].hover = false;
+            bank_widgets[i].hover = false;
           }
         }
       }
@@ -139,24 +140,24 @@ int main(int argc, char **argv)
         const screen_dim mx = e.motion.x;
         const screen_dim my = e.motion.y;
         for (size_t i=0; i<widgets_n; ++i) {
-          if (is_inside(&simple_widget[i].dims, mx, my)) {
-            simple_widget[i].hover = true;
-            if (simple_widget[i].type == BUTTON && e.button.button == SDL_BUTTON_LEFT) {
-              simple_widget[i].button.on = !simple_widget[i].button.on;
-              simple_widget[i].button.pressed = true;
+          if (is_inside(&bank_widgets[i].dims, mx, my)) {
+            bank_widgets[i].hover = true;
+            if (bank_widgets[i].type == BUTTON && e.button.button == SDL_BUTTON_LEFT) {
+              bank_widgets[i].button.on = !bank_widgets[i].button.on;
+              bank_widgets[i].button.pressed = true;
             }
             else if (e.button.button == SDL_BUTTON_RIGHT) {
-              simple_widget[i].select = !simple_widget[i].select;
+              bank_widgets[i].select = !bank_widgets[i].select;
             }
           }
           else {
-            simple_widget[i].hover = false;
+            bank_widgets[i].hover = false;
           }
         }
       }
       else if (e.type == SDL_KEYUP || e.type == SDL_MOUSEBUTTONUP) {
         for (size_t i=0; i<widgets_n; ++i) {
-          simple_widget[i].button.pressed = false;
+          bank_widgets[i].button.pressed = false;
         }
       }
     }
