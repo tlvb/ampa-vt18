@@ -2,101 +2,7 @@
 #include "gui.h"
 #include "light.h"
 #include "util.h"
-typedef uint_fast8_t bank_index;
-#define BANK_BPM           0
-#define BANK_ONOFF         1
-#define BANK_MASKN         2
-#define BANK_INHSV         3
-#define BANK_HOLDHSV       4
-#define BANK_OUTHSV        5
-#define BANK_WHITEONOFF    6
-#define BANK_STROBEONOFF   7
-#define BANK_STROBEAMOUNT  8
-#define BANK_UVAMOUNT      9
-#define BANK_ZOOM         10
-#define BANK_PATTERN      11
-typedef uint_fast8_t rangespec;
-#define BANK_HUEAVG    0
-#define BANK_HUEWINDOW 1
-#define BANK_VALMAX    2
-#define BANK_VALWINDOW 3
-void update_bank_maskn(bank *b, gui_widget* gw, int16_t delta);
-void update_bank_hsv(bank *b, gui_widget* gw, bank_index id, int16_t delta, rangespec rs);
-void update_bank_strobeamount(bank *b, gui_widget* gw, int16_t delta);
-void update_bank_uvamount(bank *b, gui_widget* gw, int16_t delta);
-void update_bank_zoom(bank *b, gui_widget* gw, int16_t delta);
-void update_bank_pattern(bank *b, gui_widget* gw, int16_t delta);
-void update_bank_maskn(bank *b, gui_widget* gw, int16_t delta)
-{
-  if (delta < 0 || b->mask > (uint32_t)delta) {
-    b->mask -= delta;
-  }
-  else {
-    b->mask = 0;
-  }
-  if (b->mask > 99) {
-    b->mask = 99;
-  }
-  gw->digits.number = b->mask;
-}
-void update_bank_hsv(bank *b, gui_widget* gw, bank_index id, int16_t delta, rangespec rs)
-{
-
-  color_range *rr[3] = { &b->in_colors, &b->hold_colors, &b->out_colors };
-  color_range *r     = rr[id-BANK_INHSV];
-  switch (rs) {
-  case BANK_HUEAVG:
-    r->hueavg = fmodf(r->hueavg+3600.0f+delta*6, 360.0f);
-    break;
-  case BANK_HUEWINDOW:
-    r->huewindow = fmaxf(fminf(r->huewindow+delta*3, 120.0f), 0.0f);
-    break;
-  case BANK_VALMAX:
-    r->valmax = fmaxf(fminf(r->valmax+delta/10.0f, 1.0f), 0.0f);
-    break;
-  case BANK_VALWINDOW:
-    r->valwindow = fmaxf(fminf(r->valwindow+delta/5.0f, 1.0f), 0.0f);
-    break;
-  }
-  hsv2rgb(&gw->swatch.red[0], &gw->swatch.green[0], &gw->swatch.blue[0], r->hueavg, 1.0f, r->valmax);
-  hsv2rgb(&gw->swatch.red[1], &gw->swatch.green[1], &gw->swatch.blue[1], fmodf(r->hueavg+r->huewindow+3600.0f, 360.0f), 1.0f, 0.5f+r->valmax/2.0f);
-  hsv2rgb(&gw->swatch.red[2], &gw->swatch.green[2], &gw->swatch.blue[2], r->hueavg, 1.0f, r->valmax*r->valwindow);
-  hsv2rgb(&gw->swatch.red[3], &gw->swatch.green[3], &gw->swatch.blue[3], fmodf(r->hueavg-r->huewindow+3600.0f, 360.0f),1.0f, 0.5f+r->valmax/2.0f);
-}
-void update_bank_strobeamount(bank *b, gui_widget* gw, int16_t delta)
-{
-  b->strobe_amount = fmaxf(fminf(b->strobe_amount+delta/20.0f, 1.0f), 0.0f);
-  gw->swatch.red[0] = gw->swatch.green[0] = gw->swatch.blue[0] = 0.5f+b->strobe_amount/2.0f;
-  gw->swatch.red[1] = gw->swatch.green[1] = gw->swatch.blue[1] = 0.5f-b->strobe_amount/2.0f;
-}
-void update_bank_uvamount(bank *b, gui_widget* gw, int16_t delta)
-{
-  b->uv_amount = fmaxf(fminf(b->uv_amount+delta/10.0f, 1.0f), 0.0f);
-  gw->swatch.red[0] = b->uv_amount*0.4;
-  gw->swatch.green[0] = 0.0f;
-  gw->swatch.blue[0] = b->uv_amount;
-  gw->swatch.red[1] = b->uv_amount*0.2;
-  gw->swatch.green[1] = 0.0f;
-  gw->swatch.blue[1] = b->uv_amount*0.5;
-}
-void update_bank_zoom(bank *b, gui_widget* gw, int16_t delta)
-{
-  
-}
-void update_bank_pattern(bank *b, gui_widget* gw, int16_t delta)
-{
-  if (delta < 0 || b->mask > (uint32_t)delta) {
-    b->pattern -= delta;
-  }
-  else {
-    b->pattern = 0;
-  }
-  if (b->pattern > 99) {
-    b->pattern = 99;
-  }
-  gw->digits.number = b->pattern;
-  
-}
+#include "bank.h"
 int main(int argc, char **argv)
 {
 
@@ -149,14 +55,14 @@ int main(int argc, char **argv)
   alloc_model(&gm, nvert);
 
   const size_t banks_n = 12;
-  bank banks[banks_n];
+  property_bank banks[banks_n];
 
   const size_t settings_per_bank = 12;
   const size_t widgets_n = settings_per_bank*banks_n;
   gui_widget bank_widgets[widgets_n];
 
   for (size_t i=0; i<banks_n; ++i) {
-    memset(&banks[i], 0, sizeof(bank));
+    initialize_bank(&banks[i]);
     screen_dim bank_x = 450;
     screen_dim bank_y = 40+50*i + (i>=4?60:0) + (i>=8?60:0);
     gui_widget *widget = &bank_widgets[i*settings_per_bank];
@@ -167,11 +73,21 @@ int main(int argc, char **argv)
     initialize_gui_widget(&gm, &widget[BANK_HOLDHSV     ], bank_x+250, bank_y,  40, 40, SWATCH4                      ); // hold
     initialize_gui_widget(&gm, &widget[BANK_OUTHSV      ], bank_x+300, bank_y,  40, 40, SWATCH4                      ); // out
     initialize_gui_widget(&gm, &widget[BANK_WHITEONOFF  ], bank_x+360, bank_y,  40, 40, BUTTON                       ); // white-on
-    initialize_gui_widget(&gm, &widget[BANK_STROBEONOFF ], bank_x+470, bank_y,  40, 40, BUTTON                       ); // strobe-on
-    initialize_gui_widget(&gm, &widget[BANK_STROBEAMOUNT], bank_x+520, bank_y,  40, 40, SWATCH2                      ); // strobe-amount
-    initialize_gui_widget(&gm, &widget[BANK_UVAMOUNT    ], bank_x+580, bank_y,  40, 40, i >= 8 ? SWATCH2   : INACTIVE); // uv-amount
-    initialize_gui_widget(&gm, &widget[BANK_ZOOM        ], bank_x+640, bank_y,  40, 40, i >= 8 ? TWODIGITS : INACTIVE); // zoom-amount
-    initialize_gui_widget(&gm, &widget[BANK_PATTERN     ], bank_x+740, bank_y,  40, 40, TWODIGITS                    ); // program index
+    initialize_gui_widget(&gm, &widget[BANK_STROBEONOFF ], bank_x+420, bank_y,  40, 40, BUTTON                       ); // strobe-on
+    initialize_gui_widget(&gm, &widget[BANK_STROBEAMOUNT], bank_x+470, bank_y,  40, 40, SWATCH2                      ); // strobe-amount
+    initialize_gui_widget(&gm, &widget[BANK_UVAMOUNT    ], bank_x+530, bank_y,  40, 40, i >= 8 ? SWATCH2   : INACTIVE); // uv-amount
+    initialize_gui_widget(&gm, &widget[BANK_ZOOM        ], bank_x+590, bank_y,  40, 40, i >= 8 ? TWODIGITS : INACTIVE); // zoom-amount
+    initialize_gui_widget(&gm, &widget[BANK_PATTERN     ], bank_x+650, bank_y,  40, 40, TWODIGITS                    ); // program index
+
+    update_bank_bpm(&banks[i],          &widget[BANK_BPM],          0);
+    update_bank_maskn(&banks[i],        &widget[BANK_MASKN],        0);
+    update_bank_hsv(&banks[i],          &widget[BANK_INHSV],        BANK_INHSV,   0, 0);
+    update_bank_hsv(&banks[i],          &widget[BANK_HOLDHSV],      BANK_HOLDHSV, 0, 0);
+    update_bank_hsv(&banks[i],          &widget[BANK_OUTHSV],       BANK_OUTHSV,  0, 0);
+    update_bank_strobeamount(&banks[i], &widget[BANK_STROBEAMOUNT], 0);
+    update_bank_uvamount(&banks[i],     &widget[BANK_UVAMOUNT],     0);
+    update_bank_zoom(&banks[i],         &widget[BANK_ZOOM],         0);
+    update_bank_pattern(&banks[i],      &widget[BANK_PATTERN],      0);
   }
 
   const size_t fixtures_n = 8 + 4 + 2;
@@ -240,6 +156,57 @@ int main(int argc, char **argv)
         else if (e.key.keysym.sym == SDLK_LALT) {
           alt = true;
         }
+
+        const SDL_Keycode keys[12] = {SDLK_F1,
+                                      SDLK_F2,
+                                      SDLK_F3,
+                                      SDLK_F4,
+                                      SDLK_F5,
+                                      SDLK_F6,
+                                      SDLK_F7,
+                                      SDLK_F8,
+                                      SDLK_F9,
+                                      SDLK_F10,
+                                      SDLK_F11,
+                                      SDLK_F12};
+        const SDL_Keycode keys2[12] = {SDLK_1,
+                                       SDLK_2,
+                                       SDLK_3,
+                                       SDLK_4,
+                                       SDLK_5,
+                                       SDLK_6,
+                                       SDLK_7,
+                                       SDLK_8,
+                                       SDLK_9,
+                                       SDLK_0,
+                                       SDLK_LEFTBRACKET,
+                                       SDLK_RIGHTBRACKET};
+        for (size_t i=0; i<12; ++i) {
+          if (e.key.keysym.sym == keys[i]) {
+            size_t j = i*settings_per_bank + BANK_ONOFF;
+            bank_widgets[j].button.on = !bank_widgets[j].button.on;
+            bank_widgets[j].button.pressed = true;
+            update_bank_onoff(&banks[i], &bank_widgets[j]);
+            goto foundkey;
+          }
+        }
+        for (size_t i=0; i<12; ++i) {
+          if (e.key.keysym.sym == keys2[i]) {
+            size_t j = i*settings_per_bank + BANK_WHITEONOFF;
+            size_t k = i*settings_per_bank + BANK_INHSV;
+            size_t l = i*settings_per_bank + BANK_HOLDHSV;
+            size_t m = i*settings_per_bank + BANK_OUTHSV;
+            bank_widgets[j].button.on = !bank_widgets[j].button.on;
+            bank_widgets[j].button.pressed = true;
+            update_bank_white(&banks[i], &bank_widgets[j]);
+            update_bank_hsv(&banks[i], &bank_widgets[k], BANK_INHSV,   0, 0);
+            update_bank_hsv(&banks[i], &bank_widgets[l], BANK_HOLDHSV, 0, 0);
+            update_bank_hsv(&banks[i], &bank_widgets[m], BANK_OUTHSV,  0, 0);
+            goto foundkey;
+          }
+        }
+      foundkey:
+        while (false);
       }
       else if (e.type == SDL_MOUSEMOTION) {
         const screen_dim mx = e.motion.x;
@@ -256,19 +223,38 @@ int main(int argc, char **argv)
       else if (e.type == SDL_MOUSEBUTTONDOWN) {
         const screen_dim mx = e.motion.x;
         const screen_dim my = e.motion.y;
-        for (size_t i=0; i<widgets_n; ++i) {
-          if (is_inside(&bank_widgets[i].dims, mx, my)) {
-            bank_widgets[i].hover = true;
-            if (bank_widgets[i].type == BUTTON && e.button.button == SDL_BUTTON_LEFT) {
-              bank_widgets[i].button.on = !bank_widgets[i].button.on;
-              bank_widgets[i].button.pressed = true;
+        for (size_t i=0; i<banks_n; ++i) {
+          property_bank *b = &banks[i];
+          gui_widget *widget = &bank_widgets[i*settings_per_bank];
+          for (size_t j=0; j<settings_per_bank; ++j) {
+            size_t k = i*settings_per_bank + j;
+            if (is_inside(&widget[j].dims, mx, my)) {
+              widget[j].hover = true;
+              if (widget[j].type == BUTTON && e.button.button == SDL_BUTTON_LEFT) {
+                widget[j].button.on = !widget[j].button.on;
+                widget[j].button.pressed = true;
+              }
+              else if (e.button.button == SDL_BUTTON_RIGHT) {
+                widget[j].select = !widget[j].select;
+              }
+              switch (j) {
+              case BANK_ONOFF:
+                update_bank_onoff(b, &widget[j]);
+                break;
+              case BANK_WHITEONOFF:
+                update_bank_white(b, &widget[j]);
+                update_bank_hsv(b, &widget[BANK_INHSV],   BANK_INHSV,   0, 0);
+                update_bank_hsv(b, &widget[BANK_HOLDHSV], BANK_HOLDHSV, 0, 0);
+                update_bank_hsv(b, &widget[BANK_OUTHSV],  BANK_OUTHSV,  0, 0);
+                break;
+              case BANK_STROBEONOFF:
+                update_bank_white(b, &widget[j]);
+                break;
+              }
             }
-            else if (e.button.button == SDL_BUTTON_RIGHT) {
-              bank_widgets[i].select = !bank_widgets[i].select;
+            else {
+              bank_widgets[i].hover = false;
             }
-          }
-          else {
-            bank_widgets[i].hover = false;
           }
         }
       }
@@ -289,6 +275,7 @@ int main(int argc, char **argv)
             if (bank_widgets[k].select) {
               switch (j) {
               case BANK_BPM:
+                update_bank_bpm(&banks[i], &bank_widgets[k], e.wheel.y * (shift ? 10 : 1));
                 break;
               case BANK_ONOFF:
                 break;
@@ -334,6 +321,18 @@ int main(int argc, char **argv)
         }
         else if (e.key.keysym.sym == SDLK_LALT) {
           alt = false;
+        }
+        for (size_t i=0; i<banks_n; ++i) {
+          size_t j = i*settings_per_bank + BANK_ONOFF;
+          size_t k = i*settings_per_bank + BANK_WHITEONOFF;
+          size_t l = i*settings_per_bank + BANK_STROBEONOFF;
+
+          bank_widgets[j].button.pressed = false;
+
+          bank_widgets[k].button.pressed = false;
+
+          bank_widgets[l].button.pressed = false;
+
         }
       }
       else if (e.type == SDL_MOUSEBUTTONUP) {

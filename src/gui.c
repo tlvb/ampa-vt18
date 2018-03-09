@@ -689,10 +689,14 @@ static inline void update_fourdigit_graphics(gui_widget *digits, bool heart)
   digits->m.colors[28] = digits->m.colors[31] = digits->m.colors[34] = 0.0f;
   digits->m.colors[29] = digits->m.colors[32] = digits->m.colors[35] = 0.0f;
 
-  update_digit_graphics(&digits->digits.digits[0], 8);
-  update_digit_graphics(&digits->digits.digits[1], 8);
-  update_digit_graphics(&digits->digits.digits[2], 8);
-  update_digit_graphics(&digits->digits.digits[3], 8);
+  uint32_t d = digits->digits.number;
+  update_digit_graphics(&digits->digits.digits[3], d%10);
+  d /= 10;
+  update_digit_graphics(&digits->digits.digits[2], d%10);
+  d /= 10;
+  update_digit_graphics(&digits->digits.digits[1], d%10);
+  d /= 10;
+  update_digit_graphics(&digits->digits.digits[0], d);
 }
 
 

@@ -582,3 +582,42 @@ void update_fixture_widgets(fixture_widget *fws, size_t n)
     }
   }
 }
+static inline void hue_interpolation(soft_value *out, soft_value start, soft_value stop, float t)
+{
+  float he = stop  + 3600.0f;
+  float hs = start + 3600.0f;
+  float ho = 0.0f;
+  if (he >= hs) {
+    ho = t*he + (1.0f-t)*hs;
+  }
+  else {
+    if (hs-he <= he+360.0f-hs) {
+      ho = t*he + (1.0f-t)*(hs+360.0f);
+    }
+    else {
+      ho = t*(he+360.0f) + (1.0f-t)*hs;
+    }
+  }
+  *out = fmodf(ho, 360.0f);
+
+
+}
+static inline void linear_interpolation(soft_value *out, soft_value start, soft_value stop, float t)
+{
+	*out = t*stop + (1.0f-t)*start;
+}
+void interpolate_and_map_values(fixture *fix, float t)
+{
+  hue_interpolation(   &fix->values[CURRENT][HUE],         fix->values[START][HUE],         fix->values[END][HUE],         t);
+  linear_interpolation(&fix->values[CURRENT][SATURATION],  fix->values[START][SATURATION],  fix->values[END][SATURATION],  t);
+  linear_interpolation(&fix->values[CURRENT][VALUE],       fix->values[START][VALUE],       fix->values[END][VALUE],       t);
+  linear_interpolation(&fix->values[CURRENT][WHITE],       fix->values[START][WHITE],       fix->values[END][WHITE],       t);
+  linear_interpolation(&fix->values[CURRENT][STROBE],      fix->values[START][STROBE],      fix->values[END][STROBE],      t);
+  linear_interpolation(&fix->values[CURRENT][ULTRAVIOLET], fix->values[START][ULTRAVIOLET], fix->values[END][ULTRAVIOLET], t);
+  linear_interpolation(&fix->values[CURRENT][PAN],         fix->values[START][PAN],         fix->values[END][PAN],         t);
+  linear_interpolation(&fix->values[CURRENT][TILT],        fix->values[START][TILT],        fix->values[END][TILT],        t);
+  linear_interpolation(&fix->values[CURRENT][ZOOM],        fix->values[START][ZOOM],        fix->values[END][ZOOM],        t);
+
+  hsv2rgb(&fix->values[CURRENT][RED], &fix->values[CURRENT][GREEN],     &fix->values[CURRENT][BLUE],
+          fix->values[CURRENT][HUE],  fix->values[CURRENT][SATURATION], fix->values[CURRENT][VALUE]);
+}

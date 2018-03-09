@@ -5,6 +5,7 @@
 #include <inttypes.h>
 #include "util.h"
 #include "gui.h"
+#include "bank.h"
 
 typedef uint_fast8_t light_type;   // if we would ever grow to support more than 256 channels this should change
 typedef float soft_value;          // float should offer enough precision for any applications
@@ -66,9 +67,20 @@ typedef struct {
   model    m;
 } fixture_widget;
 
+typedef struct {
+  size_t n;
+  mask_state *mask;
+  fixture *fix;
+  property_bank *bank;
+} program_data;
+
 
 size_t fixture_widget_triangle_count(const fixture_widget *fw);
 void   assign_fixture_widget_model_data(model *global, fixture_widget *fw);
 void   initialize_fixture_widget(model *global, fixture_widget *fw, fixture *fix, screen_dim x, screen_dim y, screen_dim w, screen_dim h);
 void   update_fixture_widgets(fixture_widget *fws, size_t n);
+
+void interpolate_values(fixture *fix);
+
+
 #endif
