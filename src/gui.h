@@ -38,9 +38,9 @@ typedef struct {
 } button_data;
 
 typedef struct {
-  float red[2];
-  float green[2];
-  float blue[2];
+  float red[4];
+  float green[4];
+  float blue[4];
 } swatch_data;
 typedef struct {
   screen_dim pos[2];
@@ -72,6 +72,24 @@ typedef struct {
   hitbox dims;
   model  m;
 } gui_widget;
+
+typedef struct {
+  float hueavg;
+  float huewindow;
+  float valmax;
+  float valwindow;
+} color_range;
+
+typedef struct {
+  bool on;
+  size_t mask;
+  color_range in_colors;
+  color_range hold_colors;
+  color_range out_colors;
+  float strobe_amount;
+  float uv_amount;
+  size_t pattern;
+} bank;
 
 bool is_inside(const hitbox *h, screen_dim x, screen_dim y);
 void initialize_gui_widget(model *global, gui_widget *gw, screen_dim x, screen_dim y, screen_dim w, screen_dim h, gui_widget_type type);

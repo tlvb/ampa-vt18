@@ -573,15 +573,15 @@ static inline void update_swatch2_graphics(gui_widget *swatch, bool heart)
 
   r = 1.0f; g = 0.5f; b=0.0f;
 
-  swatch->m.colors[18] = swatch->m.colors[21] = swatch->m.colors[24] = r;
-  swatch->m.colors[19] = swatch->m.colors[22] = swatch->m.colors[25] = g;
-  swatch->m.colors[20] = swatch->m.colors[23] = swatch->m.colors[26] = b;
+  swatch->m.colors[18] = swatch->m.colors[21] = swatch->m.colors[24] = swatch->swatch.red[0];
+  swatch->m.colors[19] = swatch->m.colors[22] = swatch->m.colors[25] = swatch->swatch.green[0];
+  swatch->m.colors[20] = swatch->m.colors[23] = swatch->m.colors[26] = swatch->swatch.blue[0];
 
   r = 0.0f; g = 0.0f; b=0.2f;
 
-  swatch->m.colors[27] = swatch->m.colors[30] = swatch->m.colors[33] = r;
-  swatch->m.colors[28] = swatch->m.colors[31] = swatch->m.colors[34] = g;
-  swatch->m.colors[29] = swatch->m.colors[32] = swatch->m.colors[35] = b;
+  swatch->m.colors[27] = swatch->m.colors[30] = swatch->m.colors[33] = swatch->swatch.red[1];
+  swatch->m.colors[28] = swatch->m.colors[31] = swatch->m.colors[34] = swatch->swatch.green[1];
+  swatch->m.colors[29] = swatch->m.colors[32] = swatch->m.colors[35] = swatch->swatch.blue[1];
 
 }
 static inline void update_swatch4_graphics(gui_widget *swatch, bool heart)
@@ -605,29 +605,29 @@ static inline void update_swatch4_graphics(gui_widget *swatch, bool heart)
   swatch->m.colors[10] = swatch->m.colors[13] = swatch->m.colors[16] = g;
   swatch->m.colors[11] = swatch->m.colors[14] = swatch->m.colors[17] = b;
 
-  r = 1.0f; g = 0.0f; b=0.0f;
+  // r = 1.0f; g = 0.0f; b=0.0f;
 
-  swatch->m.colors[18] = swatch->m.colors[21] = swatch->m.colors[24] = r;
-  swatch->m.colors[19] = swatch->m.colors[22] = swatch->m.colors[25] = g;
-  swatch->m.colors[20] = swatch->m.colors[23] = swatch->m.colors[26] = b;
+  swatch->m.colors[18] = swatch->m.colors[21] = swatch->m.colors[24] = swatch->swatch.red[0];
+  swatch->m.colors[19] = swatch->m.colors[22] = swatch->m.colors[25] = swatch->swatch.green[0];
+  swatch->m.colors[20] = swatch->m.colors[23] = swatch->m.colors[26] = swatch->swatch.blue[0];
 
   r = 1.0f; g = 0.5f; b=0.0f;
 
-  swatch->m.colors[27] = swatch->m.colors[30] = swatch->m.colors[33] = r;
-  swatch->m.colors[28] = swatch->m.colors[31] = swatch->m.colors[34] = g;
-  swatch->m.colors[29] = swatch->m.colors[32] = swatch->m.colors[35] = b;
+  swatch->m.colors[27] = swatch->m.colors[30] = swatch->m.colors[33] = swatch->swatch.red[1];
+  swatch->m.colors[28] = swatch->m.colors[31] = swatch->m.colors[34] = swatch->swatch.green[1];
+  swatch->m.colors[29] = swatch->m.colors[32] = swatch->m.colors[35] = swatch->swatch.blue[1];
 
   r = 1.0f; g = 1.0f; b=0.0f;
 
-  swatch->m.colors[36] = swatch->m.colors[39] = swatch->m.colors[42] = r;
-  swatch->m.colors[37] = swatch->m.colors[40] = swatch->m.colors[43] = g;
-  swatch->m.colors[38] = swatch->m.colors[41] = swatch->m.colors[44] = b;
+  swatch->m.colors[36] = swatch->m.colors[39] = swatch->m.colors[42] = swatch->swatch.red[2];
+  swatch->m.colors[37] = swatch->m.colors[40] = swatch->m.colors[43] = swatch->swatch.green[2];
+  swatch->m.colors[38] = swatch->m.colors[41] = swatch->m.colors[44] = swatch->swatch.blue[2];
 
   r = 0.5f; g = 1.0f; b=0.0f;
 
-  swatch->m.colors[45] = swatch->m.colors[48] = swatch->m.colors[51] = r;
-  swatch->m.colors[46] = swatch->m.colors[49] = swatch->m.colors[52] = g;
-  swatch->m.colors[47] = swatch->m.colors[50] = swatch->m.colors[53] = b;
+  swatch->m.colors[45] = swatch->m.colors[48] = swatch->m.colors[51] = swatch->swatch.red[3];
+  swatch->m.colors[46] = swatch->m.colors[49] = swatch->m.colors[52] = swatch->swatch.green[3];
+  swatch->m.colors[47] = swatch->m.colors[50] = swatch->m.colors[53] = swatch->swatch.blue[3];
 
 }
 static inline void update_twodigit_graphics(gui_widget *digits, bool heart)
@@ -658,8 +658,8 @@ static inline void update_twodigit_graphics(gui_widget *digits, bool heart)
   digits->m.colors[28] = digits->m.colors[31] = digits->m.colors[34] = 0.0f;
   digits->m.colors[29] = digits->m.colors[32] = digits->m.colors[35] = 0.0f;
 
-  update_digit_graphics(&digits->digits.digits[0], 8);
-  update_digit_graphics(&digits->digits.digits[1], 8);
+  update_digit_graphics(&digits->digits.digits[0], digits->digits.number/10);
+  update_digit_graphics(&digits->digits.digits[1], digits->digits.number%10);
 }
 static inline void update_fourdigit_graphics(gui_widget *digits, bool heart)
 {

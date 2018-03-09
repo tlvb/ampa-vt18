@@ -70,5 +70,5 @@ typedef struct {
 size_t fixture_widget_triangle_count(const fixture_widget *fw);
 void   assign_fixture_widget_model_data(model *global, fixture_widget *fw);
 void   initialize_fixture_widget(model *global, fixture_widget *fw, fixture *fix, screen_dim x, screen_dim y, screen_dim w, screen_dim h);
-void update_fixture_widgets(fixture_widget *fws, size_t n);
+void   update_fixture_widgets(fixture_widget *fws, size_t n);
 #endif
