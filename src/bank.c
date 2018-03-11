@@ -79,7 +79,7 @@ void update_bank_hsv(property_bank *b, gui_widget *gw, bank_index id, int16_t de
   }
   hsv2rgb(&gw->swatch.red[0], &gw->swatch.green[0], &gw->swatch.blue[0], r->hueavg, 1.0f-b->white, r->valmax);
   hsv2rgb(&gw->swatch.red[1], &gw->swatch.green[1], &gw->swatch.blue[1], fmodf(r->hueavg+r->huewindow+3600.0f, 360.0f), 1.0f-b->white, 0.5f+r->valmax/2.0f);
-  hsv2rgb(&gw->swatch.red[2], &gw->swatch.green[2], &gw->swatch.blue[2], r->hueavg, 1.0f-b->white, r->valmax*r->valwindow);
+  hsv2rgb(&gw->swatch.red[2], &gw->swatch.green[2], &gw->swatch.blue[2], r->hueavg, 1.0f-b->white, r->valmax*(1.0f-r->valwindow));
   hsv2rgb(&gw->swatch.red[3], &gw->swatch.green[3], &gw->swatch.blue[3], fmodf(r->hueavg-r->huewindow+3600.0f, 360.0f), 1.0f-b->white, 0.5f+r->valmax/2.0f);
 }
 void update_bank_white(property_bank *b, gui_widget *gw)

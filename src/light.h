@@ -60,7 +60,6 @@ typedef struct {
   dmx_value   hw_values[HARDCHANNELS_N];
 } fixture;
 
-
 typedef struct {
   fixture *fix;
   hitbox   dims;
@@ -68,9 +67,12 @@ typedef struct {
 } fixture_widget;
 
 typedef struct {
-  size_t n;
-  mask_state *mask;
-  fixture *fix;
+  uint32_t       tacc;
+  uint32_t       tmax;
+  size_t         n;
+  mask_state    *mask;
+  fixture       *outputs;
+  fixture       *mirrors;
   property_bank *bank;
 } program_data;
 
@@ -80,7 +82,9 @@ void   assign_fixture_widget_model_data(model *global, fixture_widget *fw);
 void   initialize_fixture_widget(model *global, fixture_widget *fw, fixture *fix, screen_dim x, screen_dim y, screen_dim w, screen_dim h);
 void   update_fixture_widgets(fixture_widget *fws, size_t n);
 
-void interpolate_values(fixture *fix);
+void zero_values(fixture *target);
+void saturate_values(fixture *target);
+void update_program(program_data* prog, uint32_t dt);
 
 
 #endif

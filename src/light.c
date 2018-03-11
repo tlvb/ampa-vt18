@@ -328,6 +328,19 @@ static void initialize_ledmh2_widget(fixture_widget *fw)
     fw->m.points[58] = x;
     fw->m.points[59] = y+h;
   }
+  // zoom indicator
+  {
+    const screen_dim x = fw->dims.pos[0];
+    const screen_dim y = fw->dims.pos[1] + u*3;
+    const screen_dim w = u*3;
+    const screen_dim h = u;
+    fw->m.points[60] = x;
+    fw->m.points[61] = y;
+    fw->m.points[62] = x+w;
+    fw->m.points[63] = y;
+    fw->m.points[64] = x+w;
+    fw->m.points[65] = y+h;
+  }
   for (size_t i=0; i<TRI_PER_LEDMH2*VTX_PER_TRI; ++i) {
     fw->m.colors[i*CLR_PER_VTX+0] = 0.0f;
     fw->m.colors[i*CLR_PER_VTX+1] = 0.0f;
@@ -390,12 +403,12 @@ static inline void update_ledpar56_widget(fixture_widget *fw)
 }
 static inline void update_ledwash_widget(fixture_widget *fw)
 {
-  GLfloat red = 0.0f;
-  GLfloat green = 0.3f;
-  GLfloat blue = 1.0f;
-  GLfloat white = 0.3f;
-  GLfloat strobe0 = 0.0f;
-  GLfloat strobe1 = 1.0f;
+  GLfloat red = fw->fix->values[CURRENT][RED];
+  GLfloat green = fw->fix->values[CURRENT][GREEN];
+  GLfloat blue = fw->fix->values[CURRENT][BLUE];
+  GLfloat white = fw->fix->values[CURRENT][WHITE];
+  GLfloat strobe0 = fw->fix->values[CURRENT][STROBE];
+  GLfloat strobe1 = 1.0f-strobe0;
 
   fw->m.colors[ 0] = fw->m.colors[ 3] = fw->m.colors[ 6] = red;
   fw->m.colors[ 1] = fw->m.colors[ 4] = fw->m.colors[ 7] = green;
@@ -420,16 +433,17 @@ static inline void update_ledwash_widget(fixture_widget *fw)
 }
 static inline void update_ledmh_widget(fixture_widget *fw)
 {
-  GLfloat red = 0.1f;
-  GLfloat green = 0.3f;
-  GLfloat blue = 0.1f;
-  GLfloat white = 0.3f;
-  GLfloat strobe0 = 0.0f;
-  GLfloat strobe1 = 1.0f;
+  GLfloat red = fw->fix->values[CURRENT][RED];
+  GLfloat green = fw->fix->values[CURRENT][GREEN];
+  GLfloat blue = fw->fix->values[CURRENT][BLUE];
+  GLfloat white = fw->fix->values[CURRENT][WHITE];
+  GLfloat strobe0 = fw->fix->values[CURRENT][STROBE];
+  GLfloat strobe1 = 1.0f-strobe0;
+
   GLfloat pt_clr = red+green+blue < 1.0f ? 1.0f : 0.0f;
 
-  GLfloat pan = 0.5;
-  GLfloat tilt = 0.5;
+  GLfloat pan = fw->fix->values[CURRENT][PAN];
+  GLfloat tilt = fw->fix->values[CURRENT][TILT];
 
   fw->m.colors[ 0] = fw->m.colors[ 3] = fw->m.colors[ 6] = red;
   fw->m.colors[ 1] = fw->m.colors[ 4] = fw->m.colors[ 7] = green;
@@ -484,18 +498,21 @@ static inline void update_ledmh_widget(fixture_widget *fw)
 }
 static inline void update_ledmh2_widget(fixture_widget *fw)
 {
-  GLfloat red = 0.1f;
-  GLfloat green = 0.3f;
-  GLfloat blue = 1.0f;
-  GLfloat white = 0.3f;
-  GLfloat strobe0 = 0.0f;
-  GLfloat strobe1 = 1.0f;
-  GLfloat uv = 1.0f;
+  GLfloat red = fw->fix->values[CURRENT][RED];
+  GLfloat green = fw->fix->values[CURRENT][GREEN];
+  GLfloat blue = fw->fix->values[CURRENT][BLUE];
+  GLfloat white = fw->fix->values[CURRENT][WHITE];
+  GLfloat strobe0 = fw->fix->values[CURRENT][STROBE];
+  GLfloat strobe1 = 1.0f-strobe0;
+
+  GLfloat uv = fw->fix->values[CURRENT][ULTRAVIOLET];
   GLfloat uvr = 0.3*uv;
   GLfloat uvb = uv;
 
-  GLfloat pan = -1.0f;
-  GLfloat tilt = -1.0f;
+  GLfloat pan = fw->fix->values[CURRENT][PAN];
+  GLfloat tilt = fw->fix->values[CURRENT][TILT];
+
+  GLfloat zoom = fw->fix->values[CURRENT][ZOOM];
 
   GLfloat pt_clr = red+green+blue < 1.0f ? 1.0f : 0.0f;
 
@@ -534,9 +551,9 @@ static inline void update_ledmh2_widget(fixture_widget *fw)
   fw->m.colors[82] = fw->m.colors[85] = fw->m.colors[88] = pt_clr;
   fw->m.colors[83] = fw->m.colors[86] = fw->m.colors[89] = pt_clr;
 
+  fw->m.colors[90] = fw->m.colors[93] = fw->m.colors[96] = 1.0f;
   fw->m.colors[91] = fw->m.colors[94] = fw->m.colors[97] = 1.0f;
   fw->m.colors[92] = fw->m.colors[95] = fw->m.colors[98] = 1.0f;
-  fw->m.colors[93] = fw->m.colors[96] = fw->m.colors[99] = 1.0f;
   // pan/tilt indicator
   {
     const screen_dim u = fw->dims.size[0]/4;
@@ -559,7 +576,23 @@ static inline void update_ledmh2_widget(fixture_widget *fw)
     fw->m.points[58] = x;
     fw->m.points[59] = y+h;
   }
+  // zoom indicator
+  {
+    const screen_dim u = fw->dims.size[0]/4;
+    const screen_dim x = fw->dims.pos[0];
+    const screen_dim y = fw->dims.pos[1] + u*3;
+    const screen_dim w = u*3*zoom;
+    const screen_dim h = u;
+    fw->m.points[60] = x;
+    fw->m.points[61] = y;
+    fw->m.points[62] = x+w;
+    fw->m.points[63] = y;
+    fw->m.points[64] = x+w;
+    fw->m.points[65] = y+h;
+  }
+
 }
+
 void update_fixture_widgets(fixture_widget *fws, size_t n)
 {
   for (size_t i=0; i<n; ++i) {
@@ -588,25 +621,28 @@ static inline void hue_interpolation(soft_value *out, soft_value start, soft_val
   float hs = start + 3600.0f;
   float ho = 0.0f;
   if (he >= hs) {
-    ho = t*he + (1.0f-t)*hs;
+    if (he-hs <= hs+360.0f-he) {
+      ho = t*he + (1.0f-t)*hs;
+    }
+    else {
+      ho = t*he + (1.0f-t)*(hs+360.0f);
+    }
   }
   else {
     if (hs-he <= he+360.0f-hs) {
-      ho = t*he + (1.0f-t)*(hs+360.0f);
+      ho = t*he + (1.0f-t)*hs;
     }
     else {
       ho = t*(he+360.0f) + (1.0f-t)*hs;
     }
   }
   *out = fmodf(ho, 360.0f);
-
-
 }
 static inline void linear_interpolation(soft_value *out, soft_value start, soft_value stop, float t)
 {
-	*out = t*stop + (1.0f-t)*start;
+  *out = t*stop + (1.0f-t)*start;
 }
-void interpolate_and_map_values(fixture *fix, float t)
+static inline void interpolate_and_map_values(fixture *fix, float t)
 {
   hue_interpolation(   &fix->values[CURRENT][HUE],         fix->values[START][HUE],         fix->values[END][HUE],         t);
   linear_interpolation(&fix->values[CURRENT][SATURATION],  fix->values[START][SATURATION],  fix->values[END][SATURATION],  t);
@@ -620,4 +656,74 @@ void interpolate_and_map_values(fixture *fix, float t)
 
   hsv2rgb(&fix->values[CURRENT][RED], &fix->values[CURRENT][GREEN],     &fix->values[CURRENT][BLUE],
           fix->values[CURRENT][HUE],  fix->values[CURRENT][SATURATION], fix->values[CURRENT][VALUE]);
+}
+inline void zero_values(fixture *target)
+{
+  target->values[CURRENT][RED]          = 0.0f;
+  target->values[CURRENT][GREEN]        = 0.0f;
+  target->values[CURRENT][BLUE]         = 0.0f;
+  target->values[CURRENT][WHITE]        = 0.0f;
+  target->values[CURRENT][STROBE]       = 0.0f;
+  target->values[CURRENT][ULTRAVIOLET]  = 0.0f;
+  target->values[CURRENT][PAN]          = 0.0f;
+  target->values[CURRENT][TILT]         = 0.0f;
+}
+static inline void sum_values(fixture *target, fixture *source)
+{
+  target->values[CURRENT][RED]          += source->values[CURRENT][RED];
+  target->values[CURRENT][GREEN]        += source->values[CURRENT][GREEN];
+  target->values[CURRENT][BLUE]         += source->values[CURRENT][BLUE];
+  target->values[CURRENT][WHITE]        += source->values[CURRENT][WHITE];
+  target->values[CURRENT][STROBE]       += source->values[CURRENT][STROBE];
+  target->values[CURRENT][ULTRAVIOLET]  += source->values[CURRENT][ULTRAVIOLET];
+  target->values[CURRENT][PAN]          += source->values[CURRENT][PAN];
+  target->values[CURRENT][TILT]         += source->values[CURRENT][TILT];
+}
+inline void saturate_values(fixture *target)
+{
+  target->values[CURRENT][RED]         = fminf(fmaxf(target->values[CURRENT][RED],          0.0f), 1.0f);
+  target->values[CURRENT][GREEN]       = fminf(fmaxf(target->values[CURRENT][GREEN],        0.0f), 1.0f);
+  target->values[CURRENT][BLUE]        = fminf(fmaxf(target->values[CURRENT][BLUE],         0.0f), 1.0f);
+  target->values[CURRENT][WHITE]       = fminf(fmaxf(target->values[CURRENT][WHITE],        0.0f), 1.0f);
+  target->values[CURRENT][STROBE]      = fminf(fmaxf(target->values[CURRENT][STROBE],       0.0f), 1.0f);
+  target->values[CURRENT][ULTRAVIOLET] = fminf(fmaxf(target->values[CURRENT][ULTRAVIOLET],  0.0f), 1.0f);
+  target->values[CURRENT][PAN]         = fminf(fmaxf(target->values[CURRENT][PAN],         -1.0f), 1.0f);
+  target->values[CURRENT][TILT]        = fminf(fmaxf(target->values[CURRENT][TILT],        -1.0f), 1.0f);
+}
+
+void update_program(program_data* prog, uint32_t dt)
+{
+  prog->tacc += dt;
+  if (prog->tacc > prog->tmax) {
+    prog->tacc -= prog->tmax;
+
+    // TODO: next program step
+
+    for (size_t i=0; i<prog->n; ++i) {
+      prog->mirrors[i].values[START][HUE] = prog->mirrors[i].values[END][HUE];
+      prog->mirrors[i].values[END][HUE]   = fmodf(3600.0f + prog->bank->hold_colors.hueavg + (frand()*2.0f-1.0f)*prog->bank->hold_colors.huewindow, 360.0f);
+
+      prog->mirrors[i].values[START][SATURATION] = 1.0f;
+      prog->mirrors[i].values[END][SATURATION] = 1.0f;
+
+      float valmax = prog->bank->hold_colors.valmax;
+      float valrange = prog->bank->hold_colors.valmax*prog->bank->hold_colors.valwindow;
+      prog->mirrors[i].values[START][VALUE] = prog->mirrors[i].values[END][VALUE];
+      prog->mirrors[i].values[END][VALUE] = valmax - frand()*valrange;
+
+    }
+  }
+  float trel = ((float)prog->tacc)/((float)prog->tmax);
+  for (size_t i=0; i<prog->n; ++i) {
+    interpolate_and_map_values(&prog->mirrors[i], trel);
+  }
+
+  // if sum
+  if (prog->bank->on) {
+    for (size_t i=0; i<prog->n; ++i) {
+      sum_values(&prog->outputs[i], &prog->mirrors[i]);
+    }
+  }
+  // if priority replace
+  // ...
 }

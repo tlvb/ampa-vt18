@@ -56,10 +56,12 @@ int main(int argc, char **argv)
 
   const size_t banks_n = 12;
   property_bank banks[banks_n];
-
   const size_t settings_per_bank = 12;
   const size_t widgets_n = settings_per_bank*banks_n;
   gui_widget bank_widgets[widgets_n];
+
+
+
 
   for (size_t i=0; i<banks_n; ++i) {
     initialize_bank(&banks[i]);
@@ -108,6 +110,27 @@ int main(int argc, char **argv)
     }
   }
 
+  program_data programs[banks_n];
+  for (size_t i=0; i<8; ++i) {
+    programs[i].tacc =    0;
+    programs[i].tmax = 1000;
+    programs[i].n = 8;
+    programs[i].mask = calloc(8, sizeof(mask_state));
+    programs[i].outputs = &fixtures[0];
+    programs[i].mirrors = calloc(8, sizeof(fixture));
+    programs[i].bank = &banks[i];
+  }
+  for (size_t i=8; i<12; ++i) {
+    programs[i].tacc =    0;
+    programs[i].tmax = 1000;
+    programs[i].n = 6;
+    programs[i].mask = calloc(6, sizeof(mask_state));
+    programs[i].outputs = &fixtures[8];
+    programs[i].mirrors = calloc(6, sizeof(fixture));
+    programs[i].bank = &banks[i];
+  }
+
+
   fixture_widget light_widgets[fixtures_n];
 
   for (size_t i=0; i<fixtures_n; ++i) {
@@ -124,6 +147,17 @@ int main(int argc, char **argv)
     uint32_t dt = current_iteration_time - previous_iteration_time;
     bool heart = (current_iteration_time & 0x00000200) != 0;
 
+    for (size_t i=0; i<fixtures_n; ++i) {
+      zero_values(&fixtures[i]);
+    }
+    for (size_t i=0; i<banks_n; ++i) {
+      update_program(&programs[i], dt);
+    }
+    for (size_t i=0; i<fixtures_n; ++i) {
+      saturate_values(&fixtures[i]);
+    }
+    update_gui_widgets_graphics(bank_widgets, settings_per_bank*banks_n, heart);
+    update_fixture_widgets(light_widgets, fixtures_n);
 
     // GL STUFF
     glBindBuffer(GL_ARRAY_BUFFER, position_buf_ref);
@@ -138,8 +172,6 @@ int main(int argc, char **argv)
     glDrawArrays(GL_TRIANGLES, 0, gm.vtx_n);
     SDL_GL_SwapWindow(wd.window);
 
-    update_gui_widgets_graphics(bank_widgets, settings_per_bank*banks_n, heart);
-    update_fixture_widgets(light_widgets, fixtures_n);
 
     SDL_Event e;
     while (SDL_PollEvent(&e)) {
@@ -156,57 +188,63 @@ int main(int argc, char **argv)
         else if (e.key.keysym.sym == SDLK_LALT) {
           alt = true;
         }
-
-        const SDL_Keycode keys[12] = {SDLK_F1,
-                                      SDLK_F2,
-                                      SDLK_F3,
-                                      SDLK_F4,
-                                      SDLK_F5,
-                                      SDLK_F6,
-                                      SDLK_F7,
-                                      SDLK_F8,
-                                      SDLK_F9,
-                                      SDLK_F10,
-                                      SDLK_F11,
-                                      SDLK_F12};
-        const SDL_Keycode keys2[12] = {SDLK_1,
-                                       SDLK_2,
-                                       SDLK_3,
-                                       SDLK_4,
-                                       SDLK_5,
-                                       SDLK_6,
-                                       SDLK_7,
-                                       SDLK_8,
-                                       SDLK_9,
-                                       SDLK_0,
-                                       SDLK_LEFTBRACKET,
-                                       SDLK_RIGHTBRACKET};
-        for (size_t i=0; i<12; ++i) {
-          if (e.key.keysym.sym == keys[i]) {
-            size_t j = i*settings_per_bank + BANK_ONOFF;
-            bank_widgets[j].button.on = !bank_widgets[j].button.on;
-            bank_widgets[j].button.pressed = true;
-            update_bank_onoff(&banks[i], &bank_widgets[j]);
-            goto foundkey;
+        else if (e.key.keysym.sym == SDLK_BACKSPACE) {
+          for (size_t i=0; i<widgets_n; ++i) {
+            bank_widgets[i].select = false;
           }
         }
-        for (size_t i=0; i<12; ++i) {
-          if (e.key.keysym.sym == keys2[i]) {
-            size_t j = i*settings_per_bank + BANK_WHITEONOFF;
-            size_t k = i*settings_per_bank + BANK_INHSV;
-            size_t l = i*settings_per_bank + BANK_HOLDHSV;
-            size_t m = i*settings_per_bank + BANK_OUTHSV;
-            bank_widgets[j].button.on = !bank_widgets[j].button.on;
-            bank_widgets[j].button.pressed = true;
-            update_bank_white(&banks[i], &bank_widgets[j]);
-            update_bank_hsv(&banks[i], &bank_widgets[k], BANK_INHSV,   0, 0);
-            update_bank_hsv(&banks[i], &bank_widgets[l], BANK_HOLDHSV, 0, 0);
-            update_bank_hsv(&banks[i], &bank_widgets[m], BANK_OUTHSV,  0, 0);
-            goto foundkey;
+        else {
+          const SDL_Keycode keys[12] = {SDLK_F1,
+                                        SDLK_F2,
+                                        SDLK_F3,
+                                        SDLK_F4,
+                                        SDLK_F5,
+                                        SDLK_F6,
+                                        SDLK_F7,
+                                        SDLK_F8,
+                                        SDLK_F9,
+                                        SDLK_F10,
+                                        SDLK_F11,
+                                        SDLK_F12};
+          const SDL_Keycode keys2[12] = {SDLK_1,
+                                         SDLK_2,
+                                         SDLK_3,
+                                         SDLK_4,
+                                         SDLK_5,
+                                         SDLK_6,
+                                         SDLK_7,
+                                         SDLK_8,
+                                         SDLK_9,
+                                         SDLK_0,
+                                         SDLK_LEFTBRACKET,
+                                         SDLK_RIGHTBRACKET};
+          for (size_t i=0; i<12; ++i) {
+            if (e.key.keysym.sym == keys[i]) {
+              size_t j = i*settings_per_bank + BANK_ONOFF;
+              bank_widgets[j].button.on = !bank_widgets[j].button.on;
+              bank_widgets[j].button.pressed = true;
+              update_bank_onoff(&banks[i], &bank_widgets[j]);
+              goto foundkey;
+            }
           }
+          for (size_t i=0; i<12; ++i) {
+            if (e.key.keysym.sym == keys2[i]) {
+              size_t j = i*settings_per_bank + BANK_WHITEONOFF;
+              size_t k = i*settings_per_bank + BANK_INHSV;
+              size_t l = i*settings_per_bank + BANK_HOLDHSV;
+              size_t m = i*settings_per_bank + BANK_OUTHSV;
+              bank_widgets[j].button.on = !bank_widgets[j].button.on;
+              bank_widgets[j].button.pressed = true;
+              update_bank_white(&banks[i], &bank_widgets[j]);
+              update_bank_hsv(&banks[i], &bank_widgets[k], BANK_INHSV,   0, 0);
+              update_bank_hsv(&banks[i], &bank_widgets[l], BANK_HOLDHSV, 0, 0);
+              update_bank_hsv(&banks[i], &bank_widgets[m], BANK_OUTHSV,  0, 0);
+              goto foundkey;
+            }
+          }
+        foundkey:
+          while (false);
         }
-      foundkey:
-        while (false);
       }
       else if (e.type == SDL_MOUSEMOTION) {
         const screen_dim mx = e.motion.x;
@@ -343,6 +381,7 @@ int main(int argc, char **argv)
         }
       }
     }
+    previous_iteration_time = current_iteration_time;
   }
 
 }
