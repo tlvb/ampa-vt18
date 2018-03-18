@@ -31,12 +31,13 @@ typedef struct {
 
 typedef struct {
   size_t bpm;
+  size_t period;
   bool on;
   size_t mask;
   color_range in_colors;
   color_range hold_colors;
   color_range out_colors;
-  float white;
+  bool white;
   float strobe;
   float strobe_amount;
   float uv_amount;
@@ -55,4 +56,12 @@ void update_bank_strobeamount(property_bank *b, gui_widget *gw, int16_t delta);
 void update_bank_uvamount(property_bank *b, gui_widget *gw, int16_t delta);
 void update_bank_zoom(property_bank *b, gui_widget *gw, int16_t delta);
 void update_bank_pattern(property_bank *b, gui_widget *gw, int16_t delta);
+
+void clone_bank_bpm(property_bank *tb, gui_widget *tgw, property_bank *sb, gui_widget *sgw);
+void clone_bank_mask(property_bank *tb, gui_widget *tgw, property_bank *sb, gui_widget *sgw);
+void clone_bank_hsv(property_bank *tb, gui_widget *tgw, bank_index tid, property_bank *sb, gui_widget *sgw, bank_index sid);
+void clone_bank_strobeamount(property_bank *tb, gui_widget *tgw, property_bank *sb, gui_widget *sgw);
+void clone_bank_uvamount(property_bank *tb, gui_widget *tgw, property_bank *sb, gui_widget *sgw);
+void clone_zoom(property_bank *tb, gui_widget *tgw, property_bank *sb, gui_widget *sgw);
+void clone_pattern(property_bank *tb, gui_widget *tgw, property_bank *sb, gui_widget *sgw);
 #endif

@@ -407,7 +407,7 @@ static inline void update_ledwash_widget(fixture_widget *fw)
   GLfloat green = fw->fix->values[CURRENT][GREEN];
   GLfloat blue = fw->fix->values[CURRENT][BLUE];
   GLfloat white = fw->fix->values[CURRENT][WHITE];
-  GLfloat strobe0 = fw->fix->values[CURRENT][STROBE];
+  GLfloat strobe0 = 0.5f+fw->fix->values[CURRENT][STROBE]*0.5f;
   GLfloat strobe1 = 1.0f-strobe0;
 
   fw->m.colors[ 0] = fw->m.colors[ 3] = fw->m.colors[ 6] = red;
@@ -437,7 +437,7 @@ static inline void update_ledmh_widget(fixture_widget *fw)
   GLfloat green = fw->fix->values[CURRENT][GREEN];
   GLfloat blue = fw->fix->values[CURRENT][BLUE];
   GLfloat white = fw->fix->values[CURRENT][WHITE];
-  GLfloat strobe0 = fw->fix->values[CURRENT][STROBE];
+  GLfloat strobe0 = 0.5f+fw->fix->values[CURRENT][STROBE]*0.5f;
   GLfloat strobe1 = 1.0f-strobe0;
 
   GLfloat pt_clr = red+green+blue < 1.0f ? 1.0f : 0.0f;
@@ -476,8 +476,8 @@ static inline void update_ledmh_widget(fixture_widget *fw)
   // pan/tilt indicator
   {
     const screen_dim u = fw->dims.size[0]/4;
-    const screen_dim x = fw->dims.pos[0]+(pan+1.0f)*u*0.5f;
-    const screen_dim y = fw->dims.pos[1]+(tilt+1.0f)*u*0.5f;
+    const screen_dim x = fw->dims.pos[0]+(pan+1.0f)*u;
+    const screen_dim y = fw->dims.pos[1]+(tilt+1.0f)*u;
     const screen_dim w = u;
     const screen_dim h = u;
 
@@ -502,12 +502,10 @@ static inline void update_ledmh2_widget(fixture_widget *fw)
   GLfloat green = fw->fix->values[CURRENT][GREEN];
   GLfloat blue = fw->fix->values[CURRENT][BLUE];
   GLfloat white = fw->fix->values[CURRENT][WHITE];
-  GLfloat strobe0 = fw->fix->values[CURRENT][STROBE];
+  GLfloat strobe0 = 0.5f+fw->fix->values[CURRENT][STROBE]*0.5f;
   GLfloat strobe1 = 1.0f-strobe0;
 
   GLfloat uv = fw->fix->values[CURRENT][ULTRAVIOLET];
-  GLfloat uvr = 0.3*uv;
-  GLfloat uvb = uv;
 
   GLfloat pan = fw->fix->values[CURRENT][PAN];
   GLfloat tilt = fw->fix->values[CURRENT][TILT];
@@ -537,12 +535,12 @@ static inline void update_ledmh2_widget(fixture_widget *fw)
   fw->m.colors[46] = fw->m.colors[49] = fw->m.colors[52] = strobe1;
   fw->m.colors[47] = fw->m.colors[50] = fw->m.colors[53] = strobe1;
 
-  fw->m.colors[54] = fw->m.colors[57] = fw->m.colors[60] = uvr;
+  fw->m.colors[54] = fw->m.colors[57] = fw->m.colors[60] = uv*0.4;
   fw->m.colors[55] = fw->m.colors[58] = fw->m.colors[61] = 0.0f;
-  fw->m.colors[56] = fw->m.colors[59] = fw->m.colors[62] = uvb;
-  fw->m.colors[63] = fw->m.colors[66] = fw->m.colors[69] = uvr;
+  fw->m.colors[56] = fw->m.colors[59] = fw->m.colors[62] = uv;
+  fw->m.colors[63] = fw->m.colors[66] = fw->m.colors[69] = uv*0.2;
   fw->m.colors[64] = fw->m.colors[67] = fw->m.colors[70] = 0.0f;
-  fw->m.colors[65] = fw->m.colors[68] = fw->m.colors[71] = uvb;
+  fw->m.colors[65] = fw->m.colors[68] = fw->m.colors[71] = uv*0.5;
 
   fw->m.colors[72] = fw->m.colors[75] = fw->m.colors[78] = pt_clr;
   fw->m.colors[73] = fw->m.colors[76] = fw->m.colors[79] = pt_clr;
@@ -590,7 +588,6 @@ static inline void update_ledmh2_widget(fixture_widget *fw)
     fw->m.points[64] = x+w;
     fw->m.points[65] = y+h;
   }
-
 }
 
 void update_fixture_widgets(fixture_widget *fws, size_t n)
@@ -665,8 +662,8 @@ inline void zero_values(fixture *target)
   target->values[CURRENT][WHITE]        = 0.0f;
   target->values[CURRENT][STROBE]       = 0.0f;
   target->values[CURRENT][ULTRAVIOLET]  = 0.0f;
-  target->values[CURRENT][PAN]          = 0.0f;
-  target->values[CURRENT][TILT]         = 0.0f;
+  //target->values[CURRENT][PAN]          = 0.0f;
+  //target->values[CURRENT][TILT]         = 0.0f;
 }
 static inline void sum_values(fixture *target, fixture *source)
 {
@@ -679,6 +676,18 @@ static inline void sum_values(fixture *target, fixture *source)
   target->values[CURRENT][PAN]          += source->values[CURRENT][PAN];
   target->values[CURRENT][TILT]         += source->values[CURRENT][TILT];
 }
+static inline void assign_values(fixture *target, fixture *source)
+{
+  target->values[CURRENT][RED]          = source->values[CURRENT][RED];
+  target->values[CURRENT][GREEN]        = source->values[CURRENT][GREEN];
+  target->values[CURRENT][BLUE]         = source->values[CURRENT][BLUE];
+  target->values[CURRENT][WHITE]        = source->values[CURRENT][WHITE];
+  target->values[CURRENT][STROBE]       = source->values[CURRENT][STROBE];
+  target->values[CURRENT][ULTRAVIOLET]  = source->values[CURRENT][ULTRAVIOLET];
+  target->values[CURRENT][PAN]          = source->values[CURRENT][PAN];
+  target->values[CURRENT][TILT]         = source->values[CURRENT][TILT];
+  target->values[CURRENT][ZOOM]         = source->values[CURRENT][ZOOM];
+}
 inline void saturate_values(fixture *target)
 {
   target->values[CURRENT][RED]         = fminf(fmaxf(target->values[CURRENT][RED],          0.0f), 1.0f);
@@ -690,38 +699,140 @@ inline void saturate_values(fixture *target)
   target->values[CURRENT][PAN]         = fminf(fmaxf(target->values[CURRENT][PAN],         -1.0f), 1.0f);
   target->values[CURRENT][TILT]        = fminf(fmaxf(target->values[CURRENT][TILT],        -1.0f), 1.0f);
 }
-
+static inline void initialize_from_color_range(fixture *target, mask_state phase, const color_range *source)
+{
+  target->values[phase][HUE] = fmodf(3600.0f + source->hueavg + (frand()*2.0f-1.0f)*source->huewindow, 360.0f);
+  target->values[phase][SATURATION] = 1.0f;
+  float valmax = source->valmax;
+  float valrange = source->valmax*source->valwindow;
+  target->values[phase][VALUE] = valmax - frand()*valrange;
+}
 void update_program(program_data* prog, uint32_t dt)
 {
   prog->tacc += dt;
-  if (prog->tacc > prog->tmax) {
-    prog->tacc -= prog->tmax;
+  if (prog->tacc > prog->bank->period) {
+    prog->tacc %= prog->bank->period;
 
-    // TODO: next program step
+    // next program step
 
     for (size_t i=0; i<prog->n; ++i) {
+      switch (prog->mask[i]) {
+      case MASK_OFF:
+        //prog->mask[i] = MASK_IN;
+        break;
+      case MASK_IN:
+        prog->mask[i] = MASK_HOLD;
+        prog->mask_counter[i] = 0;
+        break;
+      case MASK_HOLD:
+        if (++prog->mask_counter[i] >= prog->bank->mask) {
+          prog->mask[i] = MASK_OUT;
+        }
+        break;
+      case MASK_FAST:
+      case MASK_OUT:
+        prog->mask[i] = MASK_OFF;
+        break;
+      }
+    }
+
+    if (prog->bank->pattern == 0) {
+      size_t n_off = 0;
+      for (size_t i=0; i<prog->n; ++i) {
+        if (prog->mask[i] == MASK_OFF) {
+          ++n_off;
+        }
+      }
+      if (n_off > 0) {
+        size_t selected = rand() % n_off;
+        for (size_t i=0; i<prog->n; ++i) {
+          if (prog->mask[i] != MASK_OFF) {
+            ++selected;
+          }
+          else if (i == selected) {
+            prog->mask[i] = MASK_IN;
+            break;
+          }
+        }
+      }
+    }
+
+    for (size_t i=0; i<prog->n; ++i) {
+      if (prog->mask[i] == MASK_IN && prog->bank->mask == 0) {
+        prog->mask[i] = MASK_FAST;
+      }
+    }
+
+    for (size_t i=0; i<prog->n; ++i) {
+
       prog->mirrors[i].values[START][HUE] = prog->mirrors[i].values[END][HUE];
-      prog->mirrors[i].values[END][HUE]   = fmodf(3600.0f + prog->bank->hold_colors.hueavg + (frand()*2.0f-1.0f)*prog->bank->hold_colors.huewindow, 360.0f);
-
       prog->mirrors[i].values[START][SATURATION] = 1.0f;
-      prog->mirrors[i].values[END][SATURATION] = 1.0f;
-
-      float valmax = prog->bank->hold_colors.valmax;
-      float valrange = prog->bank->hold_colors.valmax*prog->bank->hold_colors.valwindow;
       prog->mirrors[i].values[START][VALUE] = prog->mirrors[i].values[END][VALUE];
-      prog->mirrors[i].values[END][VALUE] = valmax - frand()*valrange;
 
+      switch (prog->mask[i]) {
+      case MASK_OFF:
+        prog->mirrors[i].values[START][HUE] = 0.0f;
+        prog->mirrors[i].values[START][SATURATION] = 0.0f;
+        prog->mirrors[i].values[START][VALUE] = 0.0f;
+        break;
+      case MASK_IN:
+        initialize_from_color_range(&prog->mirrors[i], START, &prog->bank->in_colors);
+        initialize_from_color_range(&prog->mirrors[i], END,   &prog->bank->hold_colors);
+        break;
+      case MASK_HOLD:
+        initialize_from_color_range(&prog->mirrors[i], END,   &prog->bank->hold_colors);
+        break;
+      case MASK_OUT:
+        initialize_from_color_range(&prog->mirrors[i], END,   &prog->bank->out_colors);
+        break;
+      case MASK_FAST:
+        initialize_from_color_range(&prog->mirrors[i], START, &prog->bank->in_colors);
+        initialize_from_color_range(&prog->mirrors[i], END,   &prog->bank->out_colors);
+        break;
+      }
+
+      prog->mirrors[i].values[START][PAN]  = prog->mirrors[i].values[END][PAN];
+      prog->mirrors[i].values[START][TILT] = prog->mirrors[i].values[END][TILT];
+      prog->mirrors[i].values[END][PAN]  = frand()*2.0f - 1.0f;
+      prog->mirrors[i].values[END][TILT] = frand()*2.0f - 1.0f;
     }
   }
   float trel = ((float)prog->tacc)/((float)prog->tmax);
   for (size_t i=0; i<prog->n; ++i) {
+    if (prog->bank->white) {
+      prog->mirrors[i].values[START][SATURATION] = 0.0f;
+      prog->mirrors[i].values[END][SATURATION] = 0.0f;
+      prog->mirrors[i].values[START][WHITE] = prog->mirrors[i].values[START][VALUE];
+      prog->mirrors[i].values[END][WHITE] = prog->mirrors[i].values[END][VALUE];
+    }
+    else {
+      prog->mirrors[i].values[START][SATURATION] = 1.0f;
+      prog->mirrors[i].values[END][SATURATION] = 1.0f;
+      prog->mirrors[i].values[START][WHITE] = 0.0f;
+      prog->mirrors[i].values[END][WHITE] = 0.0f;
+    }
     interpolate_and_map_values(&prog->mirrors[i], trel);
+    if (prog->bank->strobe) {
+      prog->mirrors[i].values[CURRENT][STROBE] = prog->bank->strobe_amount;
+    }
+    prog->mirrors[i].values[CURRENT][ULTRAVIOLET] = prog->bank->uv_amount;
+
+    prog->mirrors[i].values[CURRENT][ZOOM] = prog->bank->zoom / 99.0f;
   }
 
   // if sum
+  /* if (prog->bank->on) { */
+  /*   for (size_t i=0; i<prog->n; ++i) { */
+  /*     if (prog->mask[i] != MASK_OFF) { */
+  /*       sum_values(&prog->outputs[i], &prog->mirrors[i]); */
+  /*     } */
+  /*   } */
+  /* } */
   if (prog->bank->on) {
     for (size_t i=0; i<prog->n; ++i) {
-      sum_values(&prog->outputs[i], &prog->mirrors[i]);
+      if (prog->mask[i] != MASK_OFF) {
+        assign_values(&prog->outputs[i], &prog->mirrors[i]);
+      }
     }
   }
   // if priority replace
