@@ -13,4 +13,6 @@ have to do for now, until all the *interesting* problems about how build an intu
 live control interface are done.
 
 Requirements:
-No idea, it runs on a single-core 1.86GHz celeron with integrated Intel 945GM graphics
+HW: No idea, it runs on a single-core 1.86GHz celeron with integrated Intel 945GM graphics
+OS: Linux
+Library dependencies are: SDL2 GL and GLU (and standard math)
